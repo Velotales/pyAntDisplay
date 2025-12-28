@@ -1,0 +1,30 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+        base: auto
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+
+  ignore:
+    - "tests/*"
+    - "setup.py"
+    - "**/__pycache__/**"
+
+comment:
+  layout: "header, diff, flags, files, footer"
+  behavior: default
+  require_changes: false
+
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true
+
+github_checks:
+  annotations: true
