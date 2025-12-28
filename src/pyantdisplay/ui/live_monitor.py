@@ -135,7 +135,11 @@ class LiveMonitor:
             }
 
     def _save_found(
-        self, dev_num: int, dev_type: int, trans_type: int, extra: Union[dict, None] = None
+        self,
+        dev_num: int,
+        dev_type: int,
+        trans_type: int,
+        extra: Union[dict, None] = None,
     ):
         deep_merge_save(
             self.save_path,
