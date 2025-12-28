@@ -520,6 +520,62 @@ class MqttMonitor:
 
     def _assign_shared_sensors(self):
         users = self.sensor_config.get("sensor_map", {}).get("users", [])
+        
+        # Process heart rate data for all users
+        for user in users:
+            name = user.get("name")
+            if not name:
+                continue
+                
+            # Support both old single hr_device_id and new hr_device_ids list
+            hr_ids = user.get("hr_device_ids", [])
+            if not hr_ids:  # Fallback to old format
+                old_hr_id = user.get("hr_device_id")
+                if old_hr_id:
+                    hr_ids = [old_hr_id]
+                    
+            # Check for active HR devices for this user
+            hr_value = None
+            for hr_id in hr_ids:
+                if hr_id in self.device_values:
+                    dv = self.device_values[hr_id]
+                    if dv.get("hr") is not None:
+                        hr_value = dv.get("hr")
+                        break  # Use first active HR device
+                        
+            # Update user values if we have HR data
+            if hr_value is not None:
+                with self.lock:
+                    uv = self.user_values.setdefault(
+                        name,
+                        {
+                            "hr": None,
+                            "speed": None,
+                            "cadence": None,
+                            "power": None,
+                            "updated": 0,
+                        },
+                    )
+                    uv["hr"] = hr_value
+                    uv["updated"] = time.time()
+                    
+                    # Also handle individual bike sensors for this user
+                    if user.get("speed_device_id") and user.get("speed_device_id") in self.device_values:
+                        dv = self.device_values[user.get("speed_device_id")]
+                        if dv.get("speed") is not None:
+                            uv["speed"] = dv.get("speed")
+                            
+                    if user.get("cadence_device_id") and user.get("cadence_device_id") in self.device_values:
+                        dv = self.device_values[user.get("cadence_device_id")]
+                        if dv.get("cadence") is not None:
+                            uv["cadence"] = dv.get("cadence")
+                            
+                    if user.get("power_device_id") and user.get("power_device_id") in self.device_values:
+                        dv = self.device_values[user.get("power_device_id")]
+                        if dv.get("power") is not None:
+                            uv["power"] = dv.get("power")
+        
+        # Handle shared wattbike sensors (existing functionality)
         wattbike = self.sensor_config.get("sensor_map", {}).get("wattbike", {})
         if not users or not wattbike:
             return
