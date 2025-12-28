@@ -173,6 +173,17 @@ class MqttMonitor:
     def _publish_discovery_for_user(self, user: str):
         if not self.discovery_enabled:
             return
+            
+        # Find user configuration to determine which devices they have
+        user_config = None
+        for u in self.sensor_config.get("sensor_map", {}).get("users", []):
+            if u.get("name") == user:
+                user_config = u
+                break
+                
+        if not user_config:
+            return
+            
         # Common device block
         device = {
             "identifiers": [f"pyantdisplay_user_{user}"],
@@ -180,38 +191,55 @@ class MqttMonitor:
             "model": "ANT+ Monitor",
             "name": f"PyANTDisplay {user}",
         }
-        # Entity definitions
-        entities = [
-            {
+        
+        # Only create entities for configured devices
+        entities = []
+        
+        # HR - check for hr_device_ids or hr_device_id (old format)
+        hr_ids = user_config.get("hr_device_ids", [])
+        if not hr_ids:  # Fallback to old format
+            old_hr_id = user_config.get("hr_device_id")
+            if old_hr_id:
+                hr_ids = [old_hr_id]
+        if hr_ids:
+            entities.append({
                 "metric": "hr",
                 "name": f"{user} Heart Rate",
                 "unit": "bpm",
                 "state_class": "measurement",
                 "icon": "mdi:heart",
-            },
-            {
+            })
+            
+        # Speed
+        if user_config.get("speed_device_id"):
+            entities.append({
                 "metric": "speed",
                 "name": f"{user} Speed",
                 "unit": "km/h",
                 "state_class": "measurement",
                 "icon": "mdi:speedometer",
-            },
-            {
+            })
+            
+        # Cadence
+        if user_config.get("cadence_device_id"):
+            entities.append({
                 "metric": "cadence",
                 "name": f"{user} Cadence",
                 "unit": "rpm",
                 "state_class": "measurement",
                 "icon": "mdi:timer-sync",
-            },
-            {
+            })
+            
+        # Power
+        if user_config.get("power_device_id"):
+            entities.append({
                 "metric": "power",
                 "name": f"{user} Power",
                 "unit": "W",
                 "device_class": "power",
                 "state_class": "measurement",
                 "icon": "mdi:flash",
-            },
-        ]
+            })
         for ent in entities:
             obj_id = f"pyantdisplay_{user}_{ent['metric']}"
             state_topic = f"{self.base_topic}/users/{user}/{ent['metric']}"
