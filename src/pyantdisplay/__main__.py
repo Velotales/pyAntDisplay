@@ -45,7 +45,7 @@ from colorama import Fore, Style
 
 from .device_scanner import DeviceScanner
 from .live_monitor import ANT_PLUS_NETWORK_KEY, LiveMonitor
-from .main import ANTPlusDisplay
+from .main import main as run_menu_application
 from .mqtt_monitor import MqttMonitor
 
 
@@ -87,15 +87,9 @@ def _load_app_config(app_config: str, local_config: Optional[str] = None) -> Dic
 
 def run_menu(app_config: Optional[str] = None, local_config: Optional[str] = None):
     """Run the interactive menu mode."""
-    cfg_path = local_config or (app_config or "config/config.yaml")
-    app = ANTPlusDisplay(config_file=cfg_path)
-    app.check_usb_on_startup()
-    try:
-        app.show_menu()
-    except KeyboardInterrupt:
-        print(f"\n{Fore.YELLOW}Application interrupted{Style.RESET_ALL}")
-    finally:
-        app.stop()
+    # The new main function handles everything internally
+    # TODO: Pass config file paths to the main application
+    run_menu_application()
 
 
 def run_scan(app_config: str, local_config: Optional[str] = None, debug: bool = False):
