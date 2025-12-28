@@ -26,6 +26,8 @@ Manages device connections and data display.
 """
 
 import os
+import sys
+import threading
 import time
 
 from colorama import Back, Fore, Style
@@ -40,6 +42,7 @@ class DeviceManager:
     def __init__(self, config: dict):
         self.config = config
         self.running = False
+        self.quit_requested = False
 
         # Device instances
         self.hr_monitor = None
@@ -79,15 +82,36 @@ class DeviceManager:
         """Callback for bike sensor data."""
         self.bike_data = data
 
+    def _input_handler(self):
+        """Handle user input in a separate thread."""
+        try:
+            while self.running and not self.quit_requested:
+                try:
+                    user_input = input().strip().lower()
+                    if user_input == 'q':
+                        self.quit_requested = True
+                        break
+                except (EOFError, KeyboardInterrupt):
+                    # Handle case where input is interrupted
+                    break
+        except Exception:
+            # Silently handle any input errors
+            pass
+
     def display_data(self):
         """Display real-time data from connected devices."""
         print(f"\n{Fore.CYAN}=== ANT+ Data Display ==={Style.RESET_ALL}")
         print("Initializing display...")
 
         self.running = True
+        self.quit_requested = False
+
+        # Start input handler in background thread
+        input_thread = threading.Thread(target=self._input_handler, daemon=True)
+        input_thread.start()
 
         try:
-            while self.running:
+            while self.running and not self.quit_requested:
                 # Clear screen (works on most terminals)
                 os.system("clear" if os.name == "posix" else "cls")
 
@@ -117,8 +141,8 @@ class DeviceManager:
                 self._display_bike_sensor(cols)
 
                 # Footer with controls - always visible
-                control_line = f"{Back.RED}{Fore.WHITE} Press Ctrl+C or 'q' + Enter to quit {Style.RESET_ALL}"
-                control_padding = max(0, (cols - 35) // 2)
+                control_line = f"{Back.RED}{Fore.WHITE} Press Ctrl+C or type 'q' + Enter to quit {Style.RESET_ALL}"
+                control_padding = max(0, (cols - 40) // 2)
                 print(" " * control_padding + control_line)
                 
                 print(f"\n{Style.DIM}Refreshing every {self.config['app']['data_display_interval']}s...{Style.RESET_ALL}")
@@ -128,6 +152,8 @@ class DeviceManager:
         except KeyboardInterrupt:
             print(f"\n{Fore.GREEN}✅ Data display stopped{Style.RESET_ALL}")
         finally:
+            if self.quit_requested:
+                print(f"\n{Fore.GREEN}✅ Data display stopped{Style.RESET_ALL}")
             self.stop()
 
     def _display_heart_rate_monitor(self, cols):
@@ -221,6 +247,7 @@ class DeviceManager:
     def stop(self):
         """Stop the device manager and disconnect devices."""
         self.running = False
+        self.quit_requested = True
 
         if self.hr_monitor:
             self.hr_monitor.disconnect()
