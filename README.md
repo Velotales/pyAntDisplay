@@ -2,8 +2,8 @@
 
 A Python application for reading data from ANT+ devices using an ANT+ USB stick. This project specifically supports heart rate monitors and bike sensors (speed/cadence), with device discovery and configuration capabilities.
 
-[![CI](https://github.com/your-username/pyAntDisplay/workflows/CI/badge.svg)](https://github.com/your-username/pyAntDisplay/actions)
-[![Coverage](https://codecov.io/gh/your-username/pyAntDisplay/branch/main/graph/badge.svg)](https://codecov.io/gh/your-username/pyAntDisplay)
+[![CI](https://github.com/Velotales/pyAntDisplay/workflows/CI/badge.svg)](https://github.com/Velotales/pyAntDisplay/actions)
+[![Coverage](https://codecov.io/gh/Velotales/pyAntDisplay/branch/main/graph/badge.svg)](https://codecov.io/gh/Velotales/pyAntDisplay)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -51,7 +51,7 @@ sudo pacman -S python python-pip libusb
 
 1. Clone or download this project to your local machine:
 ```bash
-git clone https://github.com/your-username/pyAntDisplay.git
+git clone https://github.com/Velotales/pyAntDisplay.git
 cd pyAntDisplay
 ```
 
@@ -71,7 +71,7 @@ chmod +x setup.sh
 setup.bat
 ```
 
-This will create a virtual environment in the `venv/` directory and install all required packages.
+This will create a virtual environment in the `.venv/` directory and install all required packages. Runtime data (discovered devices, logs) will be stored in the `data/` directory.
 
 3. Make sure your ANT+ USB stick is connected and accessible. On Linux, you may need to set up udev rules for USB access:
 
@@ -183,12 +183,13 @@ sensor_map:
 Create this file for machine-specific settings (ignored by Git):
 
 ```bash
-# Copy the example template
-cp config/config_local.yaml.example config/config_local.yaml
-# Edit with your settings
+# Copy the base config as starting point
+cp config/config.yaml config/config_local.yaml
+# Edit with your actual settings
 nano config/config_local.yaml
 ```
 
+Example local overrides:
 ```yaml
 mqtt:
   host: "your-mqtt-broker.local"
@@ -196,9 +197,13 @@ mqtt:
   username: "homeassistant"
   password: "secret"
   tls: false
+
+devices:
+  heart_rate:
+    device_id: 25377  # Your discovered device ID
 ```
 
-Pass local config via `--local-config` to override base settings.
+Pass local config via `--local-config config/config_local.yaml` to override base settings.
 
 ## Supported Devices
 

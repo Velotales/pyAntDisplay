@@ -1,6 +1,6 @@
 [Unit]
 Description=PyANTDisplay - ANT+ to MQTT Bridge Service
-Documentation=https://github.com/your-username/pyAntDisplay
+Documentation=https://github.com/Velotales/pyAntDisplay
 After=network.target
 Wants=network.target
 

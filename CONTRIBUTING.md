@@ -6,7 +6,7 @@ Thank you for your interest in contributing to PyANTDisplay! This document provi
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/your-username/pyAntDisplay.git
+   git clone https://github.com/Velotales/pyAntDisplay.git
    cd pyAntDisplay
    ```
 

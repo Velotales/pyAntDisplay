@@ -11,7 +11,7 @@ ant_network:
   - 69
 app:
   data_display_interval: 1
-  found_devices_file: found_devices.json
+  found_devices_file: data/found_devices.json
   scan_timeout: 30
   backend: "openant"  # or "python-ant"
 devices:

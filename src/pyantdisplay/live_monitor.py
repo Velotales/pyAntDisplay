@@ -2,11 +2,31 @@
 """
 PyANTDisplay - Live Monitor
 
+Copyright (c) 2025 Velotales
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 Runs continuously, scans and connects to ANT+ devices, maps sensors to users
 based on a YAML config, and renders a non-scrolling console dashboard.
 
 Usage:
-  python -m pyantdisplay.live_monitor --config config/sensor_map.yaml --save found_devices.json [--debug]
+  python -m pyantdisplay.live_monitor --config config/sensor_map.yaml --save data/found_devices.json [--debug]
 """
 
 import curses
@@ -429,7 +449,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="ANT+ Live Monitor")
     parser.add_argument("--config", type=str, default="config/sensor_map.yaml", help="Sensor map config file")
-    parser.add_argument("--save", type=str, default="found_devices.json", help="File to persist found devices")
+    parser.add_argument("--save", type=str, default="data/found_devices.json", help="File to persist found devices")
     parser.add_argument("--debug", action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
 

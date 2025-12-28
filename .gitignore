@@ -85,4 +85,4 @@ Thumbs.db
 # ANT+ specific
 *.fit
 *.tcx
-*.gpx
+*.gpxdata/
