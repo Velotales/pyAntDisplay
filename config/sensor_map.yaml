@@ -4,13 +4,13 @@
 sensor_map:
   users:
     - name: Yolanda
-      hr_device_id: null   # Example: replace with actual HR device id
+      hr_device_ids: []     # List of HR device IDs for this user
       speed_device_id: null
       cadence_device_id: null
       power_device_id: null
       use_wattbike: true
     - name: Dane
-      hr_device_id: 25377    # Set your HR device id when known
+      hr_device_ids: [25377]  # Multiple HR devices can be assigned to same user
       speed_device_id: null
       cadence_device_id: null
       power_device_id: null

@@ -177,10 +177,16 @@ mqtt:
 sensor_map:
   users:
     - name: "John"
-      hr_device_id: 25377    # Replace with your HR monitor's device ID
+      hr_device_ids: [25377, 38847]  # Multiple HR monitors can be assigned to same user
       speed_device_id: null
       cadence_device_id: null
+    - name: "Sarah"  
+      hr_device_ids: [42103]         # Single HR monitor
+      speed_device_id: 12345
+      cadence_device_id: null
 ```
+
+**Multiple Heart Rate Devices per User**: You can assign multiple heart rate monitors to a single user by listing their device IDs in the `hr_device_ids` array. The system will automatically use whichever device is currently active/transmitting. This is useful when users have multiple HR monitors (chest strap, watch, etc.) and want seamless switching between them.
 
 ### Local Config Overrides (`config/config_local.yaml`)
 

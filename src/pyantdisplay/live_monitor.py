@@ -255,13 +255,23 @@ class LiveMonitor:
         users = self.config.get("sensor_map", {}).get("users", [])
         wattbike = self.config.get("sensor_map", {}).get("wattbike", {})
 
-        # Open user HR channels
+        # Open user HR channels (supporting multiple HR devices per user)
         for user in users:
             name = user.get("name")
-            hr_id = user.get("hr_device_id")
-            if hr_id:
-                self._open_channel(hr_id, 120, f"{name}-HR")
-                # initialize user store
+            # Support both old single hr_device_id and new hr_device_ids list
+            hr_ids = user.get("hr_device_ids", [])
+            if not hr_ids:  # Fallback to old format
+                old_hr_id = user.get("hr_device_id")
+                if old_hr_id:
+                    hr_ids = [old_hr_id]
+            
+            # Open channels for all HR devices assigned to this user
+            for i, hr_id in enumerate(hr_ids):
+                if hr_id:
+                    self._open_channel(hr_id, 120, f"{name}-HR{i+1 if len(hr_ids) > 1 else ''}")
+            
+            # Initialize user store if they have any HR devices
+            if hr_ids:
                 with self.lock:
                     self.user_values.setdefault(
                         name, {"hr": None, "speed": None, "cadence": None, "power": None, "updated": 0}
@@ -294,7 +304,14 @@ class LiveMonitor:
 
     def _user_for_hr(self, hr_device_id: int) -> Optional[str]:
         for user in self.config.get("sensor_map", {}).get("users", []):
-            if user.get("hr_device_id") == hr_device_id:
+            # Support both old single hr_device_id and new hr_device_ids list
+            hr_ids = user.get("hr_device_ids", [])
+            if not hr_ids:  # Fallback to old format
+                old_hr_id = user.get("hr_device_id")
+                if old_hr_id:
+                    hr_ids = [old_hr_id]
+            
+            if hr_device_id in hr_ids:
                 return user.get("name")
         return None
 
@@ -385,11 +402,25 @@ class LiveMonitor:
                 # Update HR-linked values for users
                 for user in self.config.get("sensor_map", {}).get("users", []):
                     name = user.get("name", "Unknown")
-                    hr_id = user.get("hr_device_id")
+                    # Support both old single hr_device_id and new hr_device_ids list
+                    hr_ids = user.get("hr_device_ids", [])
+                    if not hr_ids:  # Fallback to old format
+                        old_hr_id = user.get("hr_device_id")
+                        if old_hr_id:
+                            hr_ids = [old_hr_id]
+                    
                     hr_val = None
-                    if hr_id and hr_id in self.device_values:
-                        dv = self.device_values[hr_id]
-                        hr_val = dv.get("hr")
+                    active_hr_id = None
+                    # Find the first active HR device for this user
+                    for hr_id in hr_ids:
+                        if hr_id and hr_id in self.device_values:
+                            dv = self.device_values[hr_id]
+                            if dv.get("hr") is not None:
+                                hr_val = dv.get("hr")
+                                active_hr_id = hr_id
+                                break
+                    
+                    if hr_val is not None:
                         # stamp last active
                         if hr_val:
                             self.last_hr_active_user = name
