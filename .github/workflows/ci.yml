@@ -8,17 +8,10 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11']
-        exclude:
-          # Exclude some combinations to reduce build time
-          - os: windows-latest
-            python-version: '3.8'
-          - os: macos-latest
-            python-version: '3.8'
 
     steps:
     - uses: actions/checkout@v4
@@ -29,23 +22,18 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install system dependencies (Ubuntu)
-      if: runner.os == 'Linux'
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y libusb-1.0-0-dev
-
-    - name: Install system dependencies (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew install libusb
 
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        key: ubuntu-latest-pip-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ubuntu-latest-pip-
 
     - name: Create virtual environment
       run: |
@@ -54,16 +42,11 @@ jobs:
     - name: Activate virtual environment (Ubuntu/macOS)
       if: runner.os != 'Windows'
       run: |
+    - name: Activate virtual environment
+      run: |
         source venv/bin/activate
         echo "VIRTUAL_ENV=$(pwd)/venv" >> $GITHUB_ENV
         echo "$(pwd)/venv/bin" >> $GITHUB_PATH
-
-    - name: Activate virtual environment (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        venv\Scripts\activate.bat
-        echo "VIRTUAL_ENV=$(pwd)\venv" >> $env:GITHUB_ENV
-        echo "$(pwd)\venv\Scripts" >> $env:GITHUB_PATH
 
     - name: Upgrade pip
       run: |
@@ -92,7 +75,7 @@ jobs:
         pytest tests/ --cov=src --cov-report=xml --cov-report=html
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'
+      if: matrix.python-version == '3.10'
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
