@@ -59,16 +59,16 @@ cd pyAntDisplay
 
 **Linux/macOS:**
 ```bash
-# Make setup script executable
-chmod +x setup.sh
-
-# Run setup script
-./setup.sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 **Windows:**
 ```cmd
-setup.bat
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 This will create a virtual environment in the `.venv/` directory and install all required packages. Runtime data (discovered devices, logs) will be stored in the `data/` directory.
@@ -97,7 +97,11 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 PyANTDisplay supports five different modes via the unified entry point:
 
 ```bash
+# Linux/macOS
 source .venv/bin/activate
+
+# Windows  
+# .venv\Scripts\activate
 
 # Interactive menu with GUI
 python -m pyantdisplay --mode menu
