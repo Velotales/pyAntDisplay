@@ -48,7 +48,6 @@ dev = [
 [project.urls]
 Repository = "https://github.com/Velotales/pyAntDisplay"
 Homepage = "https://github.com/Velotales/pyAntDisplay"
-"Homepage" = "https://github.com/Velotales/pyAntDisplay"
 "Bug Reports" = "https://github.com/Velotales/pyAntDisplay/issues"
 "Source" = "https://github.com/Velotales/pyAntDisplay"
 
