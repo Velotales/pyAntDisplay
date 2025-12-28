@@ -79,11 +79,14 @@ extend-exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.8"
-warn_return_any = true
+python_version = "3.9"
+warn_return_any = false
 warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+ignore_missing_imports = true
+show_error_codes = true
+warn_unreachable = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

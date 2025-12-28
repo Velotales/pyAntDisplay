@@ -33,12 +33,12 @@ from .services.app_modes import AppModeService
 class ApplicationLauncher:
     """Handles application mode dispatching and initialization."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.mode_service = AppModeService()
 
     def run_menu(
         self, app_config: Optional[str] = None, local_config: Optional[str] = None
-    ):
+    ) -> None:
         """Run the interactive menu mode."""
         self.mode_service.run_menu(app_config, local_config)
 

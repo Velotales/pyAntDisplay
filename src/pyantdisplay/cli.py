@@ -33,7 +33,7 @@ from .launcher import ApplicationLauncher
 class CLIHandler:
     """Handles command line interface parsing and routing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.launcher = ApplicationLauncher()
 
     def create_parser(self) -> argparse.ArgumentParser:
@@ -95,7 +95,7 @@ class CLIHandler:
                 debug=args.debug,
             )
 
-    def run(self):
+    def run(self) -> None:
         """Parse arguments and run the application."""
         parser = self.create_parser()
         args = parser.parse_args()

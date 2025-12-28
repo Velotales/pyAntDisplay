@@ -49,7 +49,7 @@ class HeartRateMonitor:
 
         # Heart rate data
         self.heart_rate = 0
-        self.rr_intervals = []
+        self.rr_intervals: list[float] = []
         self.battery_status = None
         self.last_update = 0
 

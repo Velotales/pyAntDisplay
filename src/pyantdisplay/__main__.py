@@ -28,7 +28,7 @@ Main application entry point.
 from .cli import CLIHandler
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     cli_handler = CLIHandler()
     cli_handler.run()
