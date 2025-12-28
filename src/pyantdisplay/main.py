@@ -276,7 +276,7 @@ class ANTPlusDisplay:
     def display_data(self):
         """Display real-time data from connected devices."""
         print(f"\n{Fore.CYAN}=== ANT+ Data Display ==={Style.RESET_ALL}")
-        print("Press Ctrl+C to stop...\n")
+        print("Initializing display...")
 
         self.running = True
 
@@ -285,47 +285,121 @@ class ANTPlusDisplay:
                 # Clear screen (works on most terminals)
                 os.system("clear" if os.name == "posix" else "cls")
 
-                # Display header
-                print(f"{Back.BLUE}{Fore.WHITE} ANT+ Device Data Display {Style.RESET_ALL}")
-                print(f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                # Get terminal size for better layout
+                try:
+                    import shutil
+                    cols, rows = shutil.get_terminal_size()
+                    cols = min(cols, 80)  # Cap width for readability
+                except:
+                    cols = 80
 
-                # Display heart rate data
-                if self.hr_monitor and self.hr_monitor.connected:
-                    if self.hr_data and self.hr_monitor.is_data_fresh():
-                        hr_color = Fore.GREEN if self.hr_data["heart_rate"] > 0 else Fore.YELLOW
-                        print(f"{Fore.CYAN}Heart Rate Monitor:{Style.RESET_ALL}")
-                        print(f"  {hr_color}Heart Rate: {self.hr_data['heart_rate']} BPM{Style.RESET_ALL}")
-                        if self.hr_data.get("rr_intervals"):
-                            print(f"  R-R Intervals: {len(self.hr_data['rr_intervals'])} samples")
-                    else:
-                        print(f"{Fore.CYAN}Heart Rate Monitor:{Style.RESET_ALL}")
-                        print(f"  {Fore.YELLOW}Waiting for data...{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.CYAN}Heart Rate Monitor:{Style.RESET_ALL}")
-                    print(f"  {Fore.RED}Not connected{Style.RESET_ALL}")
-
+                # Display header with border
+                header = f"🚴 ANT+ Device Data Display 📊"
+                header_padding = max(0, (cols - len(header)) // 2)
+                border_line = "═" * cols
+                
+                print(f"{Back.BLUE}{Fore.WHITE}{border_line}{Style.RESET_ALL}")
+                print(f"{Back.BLUE}{Fore.WHITE}{' ' * header_padding}{header}{' ' * (cols - len(header) - header_padding)}{Style.RESET_ALL}")
+                print(f"{Back.BLUE}{Fore.WHITE}{border_line}{Style.RESET_ALL}")
+                
+                timestamp = time.strftime('%H:%M:%S • %Y-%m-%d')
+                print(f"{Fore.CYAN}🕐 {timestamp}{Style.RESET_ALL}")
                 print()
 
-                # Display bike sensor data
-                if self.bike_sensor and self.bike_sensor.connected:
-                    if self.bike_data and self.bike_sensor.is_data_fresh():
-                        speed_color = Fore.GREEN if self.bike_data["speed"] > 0 else Fore.YELLOW
-                        cadence_color = Fore.GREEN if self.bike_data["cadence"] > 0 else Fore.YELLOW
-                        print(f"{Fore.CYAN}Bike Sensor:{Style.RESET_ALL}")
-                        print(f"  {speed_color}Speed: {self.bike_data['speed']:.1f} km/h{Style.RESET_ALL}")
-                        print(f"  {cadence_color}Cadence: {self.bike_data['cadence']} RPM{Style.RESET_ALL}")
-                        print(f"  Distance: {self.bike_data['distance']:.2f} km")
+                # Create data sections with visual boxes
+                def print_device_box(title, icon, connected, data_func):
+                    box_width = cols - 4
+                    title_line = f"┌─ {icon} {title} "
+                    title_line += "─" * max(0, box_width - len(title_line) - 1) + "┐"
+                    
+                    print(f"{Fore.CYAN}{title_line}{Style.RESET_ALL}")
+                    
+                    if connected:
+                        data_func(box_width)
                     else:
-                        print(f"{Fore.CYAN}Bike Sensor:{Style.RESET_ALL}")
-                        print(f"  {Fore.YELLOW}Waiting for data...{Style.RESET_ALL}")
-                else:
-                    print(f"{Fore.CYAN}Bike Sensor:{Style.RESET_ALL}")
-                    print(f"  {Fore.RED}Not connected{Style.RESET_ALL}")
+                        print(f"│ {Fore.RED}❌ Not connected{Style.RESET_ALL}" + " " * max(0, box_width - 18) + "│")
+                    
+                    bottom_line = "└" + "─" * (box_width - 2) + "┘"
+                    print(f"{Fore.CYAN}{bottom_line}{Style.RESET_ALL}")
+                    print()
+
+                # Heart Rate Monitor display
+                def hr_display_func(box_width):
+                    if self.hr_data and self.hr_monitor.is_data_fresh():
+                        hr = self.hr_data["heart_rate"]
+                        if hr > 0:
+                            # Color code heart rate zones
+                            if hr < 100:
+                                hr_color = Fore.CYAN
+                                zone = "Rest"
+                            elif hr < 140:
+                                hr_color = Fore.GREEN
+                                zone = "Aerobic"
+                            elif hr < 170:
+                                hr_color = Fore.YELLOW
+                                zone = "Threshold"
+                            else:
+                                hr_color = Fore.RED
+                                zone = "Anaerobic"
+                            
+                            hr_line = f"│ {hr_color}💓 {hr:3d} BPM{Style.RESET_ALL} ({zone})"
+                            padding = " " * max(0, box_width - len(f"│ 💓 {hr:3d} BPM ({zone})") - 1) + "│"
+                            print(hr_line + padding)
+                            
+                            if self.hr_data.get("rr_intervals"):
+                                rr_count = len(self.hr_data["rr_intervals"])
+                                rr_line = f"│ 📈 R-R Intervals: {rr_count} samples"
+                                rr_padding = " " * max(0, box_width - len(rr_line) - 1) + "│"
+                                print(rr_line + rr_padding)
+                        else:
+                            print(f"│ {Fore.YELLOW}⏳ Connected, waiting for heart rate...{Style.RESET_ALL}" + " " * max(0, box_width - 40) + "│")
+                    else:
+                        print(f"│ {Fore.YELLOW}⏳ Waiting for data...{Style.RESET_ALL}" + " " * max(0, box_width - 25) + "│")
+
+                # Bike Sensor display  
+                def bike_display_func(box_width):
+                    if self.bike_data and self.bike_sensor.is_data_fresh():
+                        speed = self.bike_data["speed"]
+                        cadence = self.bike_data["cadence"]
+                        distance = self.bike_data["distance"]
+                        
+                        # Speed
+                        speed_color = Fore.GREEN if speed > 0 else Fore.YELLOW
+                        speed_line = f"│ {speed_color}🚴 Speed: {speed:5.1f} km/h{Style.RESET_ALL}"
+                        speed_padding = " " * max(0, box_width - len(f"│ 🚴 Speed: {speed:5.1f} km/h") - 1) + "│"
+                        print(speed_line + speed_padding)
+                        
+                        # Cadence
+                        cadence_color = Fore.GREEN if cadence > 0 else Fore.YELLOW  
+                        cadence_line = f"│ {cadence_color}🔄 Cadence: {cadence:3d} RPM{Style.RESET_ALL}"
+                        cadence_padding = " " * max(0, box_width - len(f"│ 🔄 Cadence: {cadence:3d} RPM") - 1) + "│"
+                        print(cadence_line + cadence_padding)
+                        
+                        # Distance
+                        distance_line = f"│ 📏 Distance: {distance:6.2f} km"
+                        distance_padding = " " * max(0, box_width - len(distance_line) - 1) + "│"
+                        print(distance_line + distance_padding)
+                    else:
+                        print(f"│ {Fore.YELLOW}⏳ Waiting for data...{Style.RESET_ALL}" + " " * max(0, box_width - 25) + "│")
+
+                # Display device boxes
+                print_device_box("Heart Rate Monitor", "💓", 
+                                self.hr_monitor and self.hr_monitor.connected, hr_display_func)
+                
+                print_device_box("Bike Sensor", "🚴", 
+                                self.bike_sensor and self.bike_sensor.connected, bike_display_func)
+
+                # Footer with controls - always visible
+                control_line = f"{Back.RED}{Fore.WHITE} Press Ctrl+C or 'q' + Enter to quit {Style.RESET_ALL}"
+                control_padding = max(0, (cols - 35) // 2)
+                print(" " * control_padding + control_line)
+                
+                print(f"\n{Style.DIM}Refreshing every {self.config['app']['data_display_interval']}s...{Style.RESET_ALL}")
 
                 time.sleep(self.config["app"]["data_display_interval"])
 
         except KeyboardInterrupt:
-            print(f"\n{Fore.YELLOW}Stopping data display...{Style.RESET_ALL}")
+            print(f"\n{Fore.GREEN}✅ Data display stopped{Style.RESET_ALL}")
         finally:
             self.stop()
 
