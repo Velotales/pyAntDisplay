@@ -43,10 +43,13 @@ except Exception:
 
 from colorama import Fore, Style
 
+from .config_manager import ConfigManager
+from .device_manager import DeviceManager
 from .device_scanner import DeviceScanner
 from .live_monitor import ANT_PLUS_NETWORK_KEY, LiveMonitor
-from .main import main as run_menu_application
+from .menu_manager import MenuManager
 from .mqtt_monitor import MqttMonitor
+from .usb_detector import ANTUSBDetector
 
 
 def _deep_merge(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
@@ -87,9 +90,26 @@ def _load_app_config(app_config: str, local_config: Optional[str] = None) -> Dic
 
 def run_menu(app_config: Optional[str] = None, local_config: Optional[str] = None):
     """Run the interactive menu mode."""
-    # The new main function handles everything internally
-    # TODO: Pass config file paths to the main application
-    run_menu_application()
+    try:
+        # Initialize components
+        config_file = local_config or app_config or "config/config.yaml"
+        config_manager = ConfigManager(config_file)
+        device_manager = DeviceManager(config_manager.config)
+        usb_detector = ANTUSBDetector()
+        menu_manager = MenuManager(config_manager, device_manager, usb_detector)
+
+        # Check for USB stick on startup
+        menu_manager.check_usb_on_startup()
+
+        # Show interactive menu
+        menu_manager.show_menu()
+        
+    except KeyboardInterrupt:
+        print(f"\n{Fore.YELLOW}Application interrupted{Style.RESET_ALL}")
+    finally:
+        # Cleanup
+        if 'device_manager' in locals():
+            device_manager.stop()
 
 
 def run_scan(app_config: str, local_config: Optional[str] = None, debug: bool = False):
