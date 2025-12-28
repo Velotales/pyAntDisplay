@@ -85,4 +85,7 @@ Thumbs.db
 # ANT+ specific
 *.fit
 *.tcx
-*.gpxdata/
+*.gpx
+
+# Runtime data directory
+data/
