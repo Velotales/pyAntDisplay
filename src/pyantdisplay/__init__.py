@@ -35,7 +35,7 @@ __version__ = "1.0.0"
 __author__ = "Velotales"
 __email__ = "velotales@users.noreply.github.com"
 
-from .core.device_scanner import DeviceScanner
+from .services.device_scanner import DeviceScanner
 from .devices.bike_sensor import BikeSensor
 from .devices.heart_rate_monitor import HeartRateMonitor
 from .utils.usb_detector import ANTUSBDetector

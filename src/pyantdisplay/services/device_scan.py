@@ -27,7 +27,7 @@ Handles ANT+ device scanning operations.
 
 from colorama import Fore, Style
 
-from ..core.device_scanner import DeviceScanner
+from .device_scanner import DeviceScanner
 
 
 class DeviceScanService:

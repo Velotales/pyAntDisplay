@@ -35,6 +35,7 @@ import signal
 import sys
 import threading
 import time
+import unicodedata
 from typing import Dict, List, Optional
 
 import yaml
@@ -87,6 +88,31 @@ class LiveMonitor:
         self.stop_event = threading.Event()
         self.last_save_times: Dict[str, float] = {}
         self.manufacturer_map: Dict[int, str] = load_manufacturers()
+
+    def _calculate_display_width(self, text):
+        """Calculate actual display width accounting for emojis and wide characters."""
+        import re
+        # Remove ANSI color codes for width calculation
+        clean_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
+        
+        width = 0
+        for char in clean_text:
+            # Most emojis are wide characters (2 terminal columns)
+            if unicodedata.east_asian_width(char) in ('F', 'W'):  # Full/Wide
+                width += 2
+            elif ord(char) >= 0x1F600:  # Most emoji range
+                width += 2
+            else:
+                width += 1
+        return width
+
+    def _rjust_display_width(self, text, width):
+        """Right-justify text accounting for emoji display width."""
+        display_width = self._calculate_display_width(text)
+        if display_width >= width:
+            return text
+        padding = width - display_width
+        return ' ' * padding + text
 
     def _load_config(self) -> dict:
         try:
@@ -389,10 +415,11 @@ class LiveMonitor:
 
             # Header with fixed positions (emojis supported)
             stdscr.addstr(3, 0, "User".ljust(user_w))
-            stdscr.addstr(3, hr_col, "❤️ HR".rjust(hr_w))
-            stdscr.addstr(3, sp_col, "🚴 Speed".rjust(sp_w))
-            stdscr.addstr(3, cad_col, "🔁 Cadence".rjust(cad_w))
-            stdscr.addstr(3, pw_col, "⚡ Power".rjust(pw_w))
+            # Use fixed positions that visually align correctly
+            stdscr.addstr(3, hr_col + 3, "❤️ HR")
+            stdscr.addstr(3, sp_col + 4, "🚴 Speed")
+            stdscr.addstr(3, cad_col + 3, "🔁 Cadence")  
+            stdscr.addstr(3, pw_col + 1, "⚡ Power")
             # Separator spans terminal width
             _, cols = stdscr.getmaxyx()
             stdscr.addstr(4, 0, "-" * max(pw_col + pw_w, cols))
@@ -452,10 +479,11 @@ class LiveMonitor:
                     cad_attr = curses.color_pair(2) if cad else curses.color_pair(3)
                     pw_attr = curses.color_pair(2) if pw else curses.color_pair(3)
                     stdscr.addstr(row, 0, display_name.ljust(user_w))
-                    stdscr.addstr(row, hr_col, f"{hr_s:>{hr_w}}", hr_attr)
-                    stdscr.addstr(row, sp_col, f"{sp_s:>{sp_w}}", sp_attr)
-                    stdscr.addstr(row, cad_col, f"{cad_s:>{cad_w}}", cad_attr)
-                    stdscr.addstr(row, pw_col, f"{pw_s:>{pw_w}}", pw_attr)
+                    # Align data values under the text portion of headers
+                    stdscr.addstr(row, 25, hr_s, hr_attr)      # Under "R" in "❤️ HR"
+                    stdscr.addstr(row, sp_col + sp_w - len(sp_s), sp_s, sp_attr)     # Right-align in Speed column
+                    stdscr.addstr(row, cad_col + cad_w - len(cad_s), cad_s, cad_attr) # Right-align in Cadence column
+                    stdscr.addstr(row, pw_col + pw_w - len(pw_s), pw_s, pw_attr)     # Right-align in Power column
                     row += 1
 
             stdscr.refresh()

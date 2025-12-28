@@ -31,12 +31,12 @@ from typing import Optional
 
 from colorama import Fore, Style
 
-from ..core.device_scanner import DeviceScanner
-from ..managers.config_manager import ConfigManager
+from .device_scanner import DeviceScanner
+from .config_manager import ConfigManager
 from ..managers.device_manager import DeviceManager
-from ..managers.menu_manager import MenuManager
+from ..ui.menu_manager import MenuManager
 from ..ui.live_monitor import ANT_PLUS_NETWORK_KEY, LiveMonitor
-from ..ui.mqtt_monitor import MqttMonitor
+from .mqtt_monitor import MqttMonitor
 from ..utils.config_loader import ConfigLoader
 from ..utils.usb_detector import ANTUSBDetector
 

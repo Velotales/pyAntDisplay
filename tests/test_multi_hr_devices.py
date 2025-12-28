@@ -26,7 +26,7 @@ SOFTWARE.
 from unittest.mock import MagicMock, patch
 
 from pyantdisplay.ui.live_monitor import LiveMonitor
-from pyantdisplay.ui.mqtt_monitor import MqttMonitor
+from pyantdisplay.services.mqtt_monitor import MqttMonitor
 
 
 class TestMultiHRDevices:

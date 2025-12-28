@@ -35,7 +35,7 @@ from typing import Dict, List, Optional
 import colorama
 from colorama import Fore, Style
 
-from .ant_backend import AntBackend, ChannelType
+from ..core.ant_backend import AntBackend, ChannelType
 from ..utils.common import deep_merge_save, load_manufacturers, parse_common_pages
 from ..utils.usb_detector import ANTUSBDetector
 

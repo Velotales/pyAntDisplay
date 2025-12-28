@@ -29,6 +29,7 @@ import os
 import select
 import sys
 import time
+import unicodedata
 
 from colorama import Back, Fore, Style
 
@@ -139,11 +140,12 @@ class DataDisplayService:
     def _display_header(self, cols):
         """Display the header with timestamp."""
         header = f"🚴 ANT+ Device Data Display 📊"
-        header_padding = max(0, (cols - len(header)) // 2)
+        header_width = self._calculate_display_width(header)
+        header_padding = max(0, (cols - header_width) // 2)
         border_line = "═" * cols
         
         print(f"{Back.BLUE}{Fore.WHITE}{border_line}{Style.RESET_ALL}")
-        print(f"{Back.BLUE}{Fore.WHITE}{' ' * header_padding}{header}{' ' * (cols - len(header) - header_padding)}{Style.RESET_ALL}")
+        print(f"{Back.BLUE}{Fore.WHITE}{' ' * header_padding}{header}{' ' * (cols - header_width - header_padding)}{Style.RESET_ALL}")
         print(f"{Back.BLUE}{Fore.WHITE}{border_line}{Style.RESET_ALL}")
         
         timestamp = time.strftime('%H:%M:%S • %Y-%m-%d')
@@ -157,6 +159,23 @@ class DataDisplayService:
         print(" " * control_padding + control_line)
         
         print(f"\n{Style.DIM}Refreshing every {self.config['app']['data_display_interval']}s...{Style.RESET_ALL}")
+
+    def _calculate_display_width(self, text):
+        """Calculate actual display width accounting for emojis and ANSI codes."""
+        # Remove ANSI color codes for width calculation
+        import re
+        clean_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
+        
+        width = 0
+        for char in clean_text:
+            # Most emojis are wide characters (2 terminal columns)
+            if unicodedata.east_asian_width(char) in ('F', 'W'):  # Full/Wide
+                width += 2
+            elif ord(char) >= 0x1F600:  # Most emoji range
+                width += 2
+            else:
+                width += 1
+        return width
 
     def _display_heart_rate_monitor(self, cols):
         """Display heart rate monitor data in a box."""
@@ -173,17 +192,21 @@ class DataDisplayService:
     def _print_device_box(self, title, icon, connected, data_func, cols):
         """Print a device data box with border."""
         box_width = cols - 4
-        title_line = f"┌─ {icon} {title} "
-        title_line += "─" * max(0, box_width - len(title_line) - 1) + "┐"
+        title_text = f"{icon} {title} "
+        title_display_width = self._calculate_display_width(title_text)
+        title_line = f"┌─ {title_text}" + "─" * max(0, box_width - title_display_width - 3) + "┐"
         
         print(f"{Fore.CYAN}{title_line}{Style.RESET_ALL}")
         
         if connected:
             data_func(box_width)
         else:
-            print(f"│ {Fore.RED}❌ Not connected{Style.RESET_ALL}" + " " * max(0, box_width - 18) + "│")
+            not_connected_text = f"│ {Fore.RED}❌ Not connected{Style.RESET_ALL}"
+            not_connected_width = self._calculate_display_width(not_connected_text)
+            padding = " " * max(0, box_width - not_connected_width) + "│"
+            print(not_connected_text + padding)
         
-        bottom_line = "└" + "─" * (box_width - 2) + "┘"
+        bottom_line = "└" + "─" * (box_width - 1) + "┘"
         print(f"{Fore.CYAN}{bottom_line}{Style.RESET_ALL}")
         print()
 
@@ -210,18 +233,26 @@ class DataDisplayService:
                     zone = "Anaerobic"
                 
                 hr_line = f"│ {hr_color}💓 {hr:3d} BPM{Style.RESET_ALL} ({zone})"
-                padding = " " * max(0, box_width - len(f"│ 💓 {hr:3d} BPM ({zone})") - 1) + "│"
+                hr_width = self._calculate_display_width(hr_line)
+                padding = " " * max(0, box_width - hr_width) + "│"
                 print(hr_line + padding)
                 
                 if hr_data.get("rr_intervals"):
                     rr_count = len(hr_data["rr_intervals"])
                     rr_line = f"│ 📈 R-R Intervals: {rr_count} samples"
-                    rr_padding = " " * max(0, box_width - len(rr_line) - 1) + "│"
+                    rr_width = self._calculate_display_width(rr_line)
+                    rr_padding = " " * max(0, box_width - rr_width) + "│"
                     print(rr_line + rr_padding)
             else:
-                print(f"│ {Fore.YELLOW}⏳ Connected, waiting for heart rate...{Style.RESET_ALL}" + " " * max(0, box_width - 40) + "│")
+                waiting_hr_text = f"│ {Fore.YELLOW}⏳ Connected, waiting for heart rate...{Style.RESET_ALL}"
+                waiting_hr_width = self._calculate_display_width(waiting_hr_text)
+                padding = " " * max(0, box_width - waiting_hr_width) + "│"
+                print(waiting_hr_text + padding)
         else:
-            print(f"│ {Fore.YELLOW}⏳ Waiting for data...{Style.RESET_ALL}" + " " * max(0, box_width - 25) + "│")
+            waiting_text = f"│ {Fore.YELLOW}⏳ Waiting for data...{Style.RESET_ALL}"
+            waiting_width = self._calculate_display_width(waiting_text)
+            padding = " " * max(0, box_width - waiting_width) + "│"
+            print(waiting_text + padding)
 
     def _bike_display_func(self, box_width):
         """Display bike sensor data inside the box."""
@@ -236,18 +267,24 @@ class DataDisplayService:
             # Speed
             speed_color = Fore.GREEN if speed > 0 else Fore.YELLOW
             speed_line = f"│ {speed_color}🚴 Speed: {speed:5.1f} km/h{Style.RESET_ALL}"
-            speed_padding = " " * max(0, box_width - len(f"│ 🚴 Speed: {speed:5.1f} km/h") - 1) + "│"
+            speed_width = self._calculate_display_width(speed_line)
+            speed_padding = " " * max(0, box_width - speed_width) + "│"
             print(speed_line + speed_padding)
             
             # Cadence
             cadence_color = Fore.GREEN if cadence > 0 else Fore.YELLOW  
             cadence_line = f"│ {cadence_color}🔄 Cadence: {cadence:3d} RPM{Style.RESET_ALL}"
-            cadence_padding = " " * max(0, box_width - len(f"│ 🔄 Cadence: {cadence:3d} RPM") - 1) + "│"
+            cadence_width = self._calculate_display_width(cadence_line)
+            cadence_padding = " " * max(0, box_width - cadence_width) + "│"
             print(cadence_line + cadence_padding)
             
             # Distance
             distance_line = f"│ 📏 Distance: {distance:6.2f} km"
-            distance_padding = " " * max(0, box_width - len(distance_line) - 1) + "│"
+            distance_width = self._calculate_display_width(distance_line)
+            distance_padding = " " * max(0, box_width - distance_width) + "│"
             print(distance_line + distance_padding)
         else:
-            print(f"│ {Fore.YELLOW}⏳ Waiting for data...{Style.RESET_ALL}" + " " * max(0, box_width - 25) + "│")
+            waiting_text = f"│ {Fore.YELLOW}⏳ Waiting for data...{Style.RESET_ALL}"
+            waiting_width = self._calculate_display_width(waiting_text)
+            padding = " " * max(0, box_width - waiting_width) + "│"
+            print(waiting_text + padding)
