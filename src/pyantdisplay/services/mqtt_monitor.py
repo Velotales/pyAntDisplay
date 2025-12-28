@@ -99,7 +99,9 @@ class MqttMonitor:
         self.last_hr_active_user: Optional[str] = None
         self.stop_event = threading.Event()
         self.last_save_times: Dict[str, float] = {}
-        self.last_published_values: Dict[str, Dict[str, Optional[float]]] = {}  # Track last published values
+        self.last_published_values: Dict[
+            str, Dict[str, Optional[float]]
+        ] = {}  # Track last published values
         self.last_availability: Dict[str, bool] = {}  # Track last availability state
         self.manufacturer_map: Dict[int, str] = load_manufacturers()
 
@@ -175,17 +177,17 @@ class MqttMonitor:
     def _publish_discovery_for_user(self, user: str):
         if not self.discovery_enabled:
             return
-            
+
         # Find user configuration to determine which devices they have
         user_config = None
         for u in self.sensor_config.get("sensor_map", {}).get("users", []):
             if u.get("name") == user:
                 user_config = u
                 break
-                
+
         if not user_config:
             return
-            
+
         # Common device block
         device = {
             "identifiers": [f"pyantdisplay_user_{user}"],
@@ -193,10 +195,10 @@ class MqttMonitor:
             "model": "ANT+ Monitor",
             "name": f"PyANTDisplay {user}",
         }
-        
+
         # Only create entities for configured devices
         entities = []
-        
+
         # HR - check for hr_device_ids or hr_device_id (old format)
         hr_ids = user_config.get("hr_device_ids", [])
         if not hr_ids:  # Fallback to old format
@@ -204,44 +206,52 @@ class MqttMonitor:
             if old_hr_id:
                 hr_ids = [old_hr_id]
         if hr_ids:
-            entities.append({
-                "metric": "hr",
-                "name": f"{user} Heart Rate",
-                "unit": "bpm",
-                "state_class": "measurement",
-                "icon": "mdi:heart",
-            })
-            
+            entities.append(
+                {
+                    "metric": "hr",
+                    "name": f"{user} Heart Rate",
+                    "unit": "bpm",
+                    "state_class": "measurement",
+                    "icon": "mdi:heart",
+                }
+            )
+
         # Speed
         if user_config.get("speed_device_id"):
-            entities.append({
-                "metric": "speed",
-                "name": f"{user} Speed",
-                "unit": "km/h",
-                "state_class": "measurement",
-                "icon": "mdi:speedometer",
-            })
-            
+            entities.append(
+                {
+                    "metric": "speed",
+                    "name": f"{user} Speed",
+                    "unit": "km/h",
+                    "state_class": "measurement",
+                    "icon": "mdi:speedometer",
+                }
+            )
+
         # Cadence
         if user_config.get("cadence_device_id"):
-            entities.append({
-                "metric": "cadence",
-                "name": f"{user} Cadence",
-                "unit": "rpm",
-                "state_class": "measurement",
-                "icon": "mdi:timer-sync",
-            })
-            
+            entities.append(
+                {
+                    "metric": "cadence",
+                    "name": f"{user} Cadence",
+                    "unit": "rpm",
+                    "state_class": "measurement",
+                    "icon": "mdi:timer-sync",
+                }
+            )
+
         # Power
         if user_config.get("power_device_id"):
-            entities.append({
-                "metric": "power",
-                "name": f"{user} Power",
-                "unit": "W",
-                "device_class": "power",
-                "state_class": "measurement",
-                "icon": "mdi:flash",
-            })
+            entities.append(
+                {
+                    "metric": "power",
+                    "name": f"{user} Power",
+                    "unit": "W",
+                    "device_class": "power",
+                    "state_class": "measurement",
+                    "icon": "mdi:flash",
+                }
+            )
         for ent in entities:
             obj_id = f"pyantdisplay_{user}_{ent['metric']}"
             state_topic = f"{self.base_topic}/users/{user}/{ent['metric']}"
@@ -281,30 +291,36 @@ class MqttMonitor:
     def _publish_user_metrics(self, user: str, vals: Dict[str, Optional[float]]):
         # Only publish values that have changed
         last_vals = self.last_published_values.get(user, {})
-        
+
         # Check each metric for changes
         if vals.get("hr") is not None and vals.get("hr") != last_vals.get("hr"):
             self._publish(f"users/{user}/hr", str(int(vals["hr"])))
             logging.info(f"Published HR update for user '{user}'")
-            
-        if vals.get("speed") is not None and vals.get("speed") != last_vals.get("speed"):
+
+        if vals.get("speed") is not None and vals.get("speed") != last_vals.get(
+            "speed"
+        ):
             self._publish(f"users/{user}/speed", f"{float(vals['speed']):.2f}")
             logging.info(f"Published speed update for user '{user}'")
-            
-        if vals.get("cadence") is not None and vals.get("cadence") != last_vals.get("cadence"):
+
+        if vals.get("cadence") is not None and vals.get("cadence") != last_vals.get(
+            "cadence"
+        ):
             self._publish(f"users/{user}/cadence", str(int(vals["cadence"])))
             logging.info(f"Published cadence update for user '{user}'")
-            
-        if vals.get("power") is not None and vals.get("power") != last_vals.get("power"):
+
+        if vals.get("power") is not None and vals.get("power") != last_vals.get(
+            "power"
+        ):
             self._publish(f"users/{user}/power", str(int(vals["power"])))
             logging.info(f"Published power update for user '{user}'")
-            
+
         # Update last published values
         self.last_published_values[user] = {
             "hr": vals.get("hr"),
-            "speed": vals.get("speed"), 
+            "speed": vals.get("speed"),
             "cadence": vals.get("cadence"),
-            "power": vals.get("power")
+            "power": vals.get("power"),
         }
 
     def start(self):
@@ -537,20 +553,20 @@ class MqttMonitor:
 
     def _assign_shared_sensors(self):
         users = self.sensor_config.get("sensor_map", {}).get("users", [])
-        
+
         # Process heart rate data for all users
         for user in users:
             name = user.get("name")
             if not name:
                 continue
-                
+
             # Support both old single hr_device_id and new hr_device_ids list
             hr_ids = user.get("hr_device_ids", [])
             if not hr_ids:  # Fallback to old format
                 old_hr_id = user.get("hr_device_id")
                 if old_hr_id:
                     hr_ids = [old_hr_id]
-                    
+
             # Check for active HR devices for this user
             hr_value = None
             for hr_id in hr_ids:
@@ -559,7 +575,7 @@ class MqttMonitor:
                     if dv.get("hr") is not None:
                         hr_value = dv.get("hr")
                         break  # Use first active HR device
-                        
+
             # Update user values if we have HR data
             if hr_value is not None:
                 with self.lock:
@@ -575,23 +591,32 @@ class MqttMonitor:
                     )
                     uv["hr"] = hr_value
                     uv["updated"] = time.time()
-                    
+
                     # Also handle individual bike sensors for this user
-                    if user.get("speed_device_id") and user.get("speed_device_id") in self.device_values:
+                    if (
+                        user.get("speed_device_id")
+                        and user.get("speed_device_id") in self.device_values
+                    ):
                         dv = self.device_values[user.get("speed_device_id")]
                         if dv.get("speed") is not None:
                             uv["speed"] = dv.get("speed")
-                            
-                    if user.get("cadence_device_id") and user.get("cadence_device_id") in self.device_values:
+
+                    if (
+                        user.get("cadence_device_id")
+                        and user.get("cadence_device_id") in self.device_values
+                    ):
                         dv = self.device_values[user.get("cadence_device_id")]
                         if dv.get("cadence") is not None:
                             uv["cadence"] = dv.get("cadence")
-                            
-                    if user.get("power_device_id") and user.get("power_device_id") in self.device_values:
+
+                    if (
+                        user.get("power_device_id")
+                        and user.get("power_device_id") in self.device_values
+                    ):
                         dv = self.device_values[user.get("power_device_id")]
                         if dv.get("power") is not None:
                             uv["power"] = dv.get("power")
-        
+
         # Handle shared wattbike sensors (existing functionality)
         wattbike = self.sensor_config.get("sensor_map", {}).get("wattbike", {})
         if not users or not wattbike:

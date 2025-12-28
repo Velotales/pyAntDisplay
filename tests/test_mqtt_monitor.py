@@ -203,11 +203,14 @@ mqtt:
         assert monitor.loop_thread is None
         assert monitor.last_hr_active_user is None
 
+    @patch("pyantdisplay.services.mqtt_monitor.load_manufacturers", return_value={})
     @patch("builtins.open", mock_open())
     @patch("yaml.safe_load")
-    def test_configuration_loading(self, mock_yaml_load):
+    def test_configuration_loading(self, mock_yaml_load, mock_load_manufacturers):
         """Test that configurations are loaded during initialization."""
-        sensor_config = {"devices": [{"device_type": 120, "device_id": 12345}]}
+        sensor_config = {
+            "sensor_map": {"users": [{"name": "TestUser", "hr_device_ids": [12345]}]}
+        }
         app_config = {"mqtt": {"enabled": True, "broker": "test.local"}}
 
         mock_yaml_load.side_effect = [sensor_config, app_config]
@@ -255,3 +258,108 @@ mqtt:
         assert monitor.device_values == {}
         assert monitor.user_values == {}
         assert monitor.last_hr_active_user is None
+        assert monitor.last_published_values == {}
+        assert monitor.last_availability == {}
+
+    @patch("builtins.open", mock_open())
+    @patch("yaml.safe_load")
+    @patch("pyantdisplay.services.mqtt_monitor.mqtt")
+    def test_publish_user_metrics_change_detection(self, mock_mqtt, mock_yaml_load):
+        """Test that metrics are only published when values change."""
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+        mock_client = Mock()
+        mock_mqtt.Client.return_value = mock_client
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+        monitor.mqtt_client = mock_client
+        monitor.base_topic = "test"
+        monitor.qos = 1
+        monitor.retain = True
+
+        # First publish - should publish all values
+        user_vals = {"hr": 75, "speed": 25.5, "cadence": 90, "power": 150, "updated": 1}
+        monitor._publish_user_metrics("TestUser", user_vals)
+
+        # Should have published 4 messages
+        assert mock_client.publish.call_count == 4
+        mock_client.publish.reset_mock()
+
+        # Second publish with same values - should publish nothing
+        monitor._publish_user_metrics("TestUser", user_vals)
+        assert mock_client.publish.call_count == 0
+
+        # Third publish with changed HR only - should publish only HR
+        user_vals_changed = {
+            "hr": 80,
+            "speed": 25.5,
+            "cadence": 90,
+            "power": 150,
+            "updated": 2,
+        }
+        monitor._publish_user_metrics("TestUser", user_vals_changed)
+        assert mock_client.publish.call_count == 1
+        mock_client.publish.assert_called_with(
+            "test/users/TestUser/hr", payload="80", qos=1, retain=True
+        )
+
+    @patch("builtins.open", mock_open())
+    @patch("yaml.safe_load")
+    @patch("pyantdisplay.services.mqtt_monitor.mqtt")
+    def test_availability_change_detection(self, mock_mqtt, mock_yaml_load):
+        """Test that availability is only published when status changes."""
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+        mock_client = Mock()
+        mock_mqtt.Client.return_value = mock_client
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+        monitor.mqtt_client = mock_client
+        monitor.base_topic = "test"
+        monitor.qos = 1
+        monitor.retain = True
+
+        # First availability call - should publish
+        monitor._availability("TestUser", True)
+        assert mock_client.publish.call_count == 1
+        mock_client.publish.assert_called_with(
+            "test/users/TestUser/availability", payload="online", qos=1, retain=True
+        )
+        mock_client.publish.reset_mock()
+
+        # Second availability call with same status - should not publish
+        monitor._availability("TestUser", True)
+        assert mock_client.publish.call_count == 0
+
+        # Third availability call with different status - should publish
+        monitor._availability("TestUser", False)
+        assert mock_client.publish.call_count == 1
+        mock_client.publish.assert_called_with(
+            "test/users/TestUser/availability", payload="offline", qos=1, retain=True
+        )
+
+    @patch("builtins.open", mock_open())
+    @patch("yaml.safe_load")
+    @patch("pyantdisplay.services.mqtt_monitor.mqtt")
+    def test_last_published_values_tracking(self, mock_mqtt, mock_yaml_load):
+        """Test that last published values are properly tracked."""
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+        mock_client = Mock()
+        mock_mqtt.Client.return_value = mock_client
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+        monitor.mqtt_client = mock_client
+
+        # Publish values for user
+        user_vals = {"hr": 75, "speed": None, "cadence": 90, "power": None}
+        monitor._publish_user_metrics("TestUser", user_vals)
+
+        # Check that only non-None values are tracked
+        expected_last_vals = {"hr": 75, "speed": None, "cadence": 90, "power": None}
+        assert monitor.last_published_values["TestUser"] == expected_last_vals
+
+        # Publish new values with some None values
+        user_vals2 = {"hr": 80, "speed": 30.0, "cadence": None, "power": 200}
+        monitor._publish_user_metrics("TestUser", user_vals2)
+
+        # Check updated tracking
+        expected_last_vals2 = {"hr": 80, "speed": 30.0, "cadence": None, "power": 200}
+        assert monitor.last_published_values["TestUser"] == expected_last_vals2
