@@ -90,7 +90,6 @@ class ANTUSBDetector:
                         device.idVendor == ant_device["vendor_id"]
                         and device.idProduct == ant_device["product_id"]
                     ):
-
                         device_info = {
                             "vendor_id": device.idVendor,
                             "product_id": device.idProduct,

@@ -119,7 +119,6 @@ class TestMultiHRDevices:
         with patch("builtins.open"), patch("yaml.safe_load") as mock_yaml, patch(
             "pyantdisplay.services.mqtt_monitor.mqtt"
         ) as mock_mqtt:
-
             mock_yaml.side_effect = [sensor_config, app_config]
             mock_mqtt.Client.return_value = MagicMock()
 
@@ -148,7 +147,6 @@ class TestMultiHRDevices:
         with patch("builtins.open"), patch(
             "yaml.safe_load", return_value=mock_config
         ), patch("pyantdisplay.ui.live_monitor.load_manufacturers", return_value={}):
-
             monitor = LiveMonitor("test_config.yaml", "test_save.json")
             monitor._open_channel = MagicMock()
 

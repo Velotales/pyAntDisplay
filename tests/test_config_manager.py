@@ -61,7 +61,6 @@ class TestConfigManager:
         with patch("builtins.open", mock_open(read_data="test: value")), patch(
             "yaml.safe_load", return_value={"test": "value"}
         ):
-
             config_manager = ConfigManager("test_config.yaml")
             config_manager.save_config()
 
@@ -80,7 +79,6 @@ class TestConfigManager:
         with patch("builtins.open", mock_open(read_data="test: value")), patch(
             "yaml.safe_load", return_value={"test": "value"}
         ):
-
             config_manager = ConfigManager("test_config.yaml")
 
             # Override open for the save operation
@@ -94,7 +92,6 @@ class TestConfigManager:
         with patch("builtins.open", mock_open(read_data="test: value")), patch(
             "yaml.safe_load", return_value={"test": "value"}
         ):
-
             config_manager = ConfigManager("test_config.yaml")
 
             # Mock successful device configuration
@@ -115,7 +112,6 @@ class TestConfigManager:
         with patch("builtins.open", mock_open(read_data="test: value")), patch(
             "yaml.safe_load", return_value={"test": "value"}
         ):
-
             config_manager = ConfigManager("test_config.yaml")
 
             # Mock failed device configuration

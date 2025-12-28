@@ -266,7 +266,6 @@ class TestCommonUtilities:
         with patch("builtins.open"), patch("json.load"), patch(
             "json.dump"
         ) as mock_json_dump:
-
             deep_merge_save(
                 save_path="test_devices.json",
                 device_id=12345,
@@ -288,7 +287,6 @@ class TestCommonUtilities:
         with patch("builtins.open"), patch(
             "json.load", side_effect=FileNotFoundError()
         ), patch("json.dump") as mock_json_dump:
-
             deep_merge_save(
                 save_path="test_devices.json",
                 device_id=12345,
@@ -322,7 +320,6 @@ class TestCommonUtilities:
         ), patch("json.dump") as mock_json_dump, patch(
             "time.time", return_value=1234567890.0
         ):
-
             deep_merge_save(
                 save_path="test_devices.json",
                 device_id=12345,
