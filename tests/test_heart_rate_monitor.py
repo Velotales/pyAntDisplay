@@ -2,11 +2,24 @@
 Tests for heart rate monitor functionality.
 """
 
-from unittest.mock import Mock, patch
+import sys
+from unittest.mock import Mock, MagicMock, patch
 
 import pytest
 
-from src.pyantdisplay.heart_rate_monitor import HeartRateMonitor
+# Mock openant modules at import time to prevent USB device access
+sys.modules['openant'] = MagicMock()
+sys.modules['openant.easy'] = MagicMock()
+sys.modules['openant.easy.node'] = MagicMock()
+sys.modules['openant.easy.channel'] = MagicMock()
+
+# Mock the Node and Channel classes
+mock_node = MagicMock()
+mock_channel = MagicMock()
+sys.modules['openant.easy.node'].Node = mock_node
+sys.modules['openant.easy.channel'].Channel = mock_channel
+
+from pyantdisplay.devices.heart_rate_monitor import HeartRateMonitor
 
 
 class TestHeartRateMonitor:
@@ -28,9 +41,11 @@ class TestHeartRateMonitor:
         assert hr_monitor.node is None
         assert hr_monitor.channel is None
 
-    @patch("src.pyantdisplay.heart_rate_monitor.Node")
-    def test_connect_success(self, mock_node_class, mock_ant_node, mock_ant_channel):
+    @patch("pyantdisplay.devices.heart_rate_monitor.Node")
+    def test_connect_success(self, mock_node_class):
         """Test successful connection to heart rate monitor."""
+        mock_ant_node = Mock()
+        mock_ant_channel = Mock()
         mock_node_class.return_value = mock_ant_node
         mock_ant_node.new_channel.return_value = mock_ant_channel
 
@@ -47,7 +62,7 @@ class TestHeartRateMonitor:
         mock_ant_channel.open.assert_called_once()
         mock_ant_channel.set_id.assert_called_with(device_id, 120, 0)
 
-    @patch("src.pyantdisplay.heart_rate_monitor.Node")
+    @patch("pyantdisplay.devices.heart_rate_monitor.Node")
     def test_connect_failure(self, mock_node_class):
         """Test connection failure."""
         mock_node_class.side_effect = Exception("Connection failed")

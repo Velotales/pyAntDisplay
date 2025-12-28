@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from src.pyantdisplay.usb_detector import ANTUSBDetector
+from pyantdisplay.utils.usb_detector import ANTUSBDetector
 
 
 class TestANTUSBDetector:

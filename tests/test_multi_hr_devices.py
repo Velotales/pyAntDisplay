@@ -23,7 +23,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import sys
 from unittest.mock import MagicMock, patch
+
+# Mock openant modules at import time to prevent USB device access
+sys.modules['openant'] = MagicMock()
+sys.modules['openant.easy'] = MagicMock()
+sys.modules['openant.easy.node'] = MagicMock()
+sys.modules['openant.easy.channel'] = MagicMock()
+
+# Mock the Node and Channel classes
+mock_node = MagicMock()
+mock_channel = MagicMock()
+sys.modules['openant.easy.node'].Node = mock_node
+sys.modules['openant.easy.channel'].Channel = mock_channel
 
 from pyantdisplay.ui.live_monitor import LiveMonitor
 from pyantdisplay.services.mqtt_monitor import MqttMonitor
@@ -104,7 +117,7 @@ class TestMultiHRDevices:
         app_config = {"mqtt": {"host": "localhost", "port": 1883, "base_topic": "test"}}
 
         with patch("builtins.open"), patch("yaml.safe_load") as mock_yaml, patch(
-            "pyantdisplay.ui.mqtt_monitor.mqtt"
+            "pyantdisplay.services.mqtt_monitor.mqtt"
         ) as mock_mqtt:
 
             mock_yaml.side_effect = [sensor_config, app_config]
