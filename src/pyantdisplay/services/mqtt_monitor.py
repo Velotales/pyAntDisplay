@@ -99,6 +99,8 @@ class MqttMonitor:
         self.last_hr_active_user: Optional[str] = None
         self.stop_event = threading.Event()
         self.last_save_times: Dict[str, float] = {}
+        self.last_published_values: Dict[str, Dict[str, Optional[float]]] = {}  # Track last published values
+        self.last_availability: Dict[str, bool] = {}  # Track last availability state
         self.manufacturer_map: Dict[int, str] = load_manufacturers()
 
         # MQTT config
@@ -269,24 +271,41 @@ class MqttMonitor:
                 pass
 
     def _availability(self, user: str, online: bool):
-        state = "online" if online else "offline"
-        self._publish(f"users/{user}/availability", state)
-        logging.info(f"Availability for '{user}': {state}")
+        # Only publish availability changes
+        if self.last_availability.get(user) != online:
+            state = "online" if online else "offline"
+            self._publish(f"users/{user}/availability", state)
+            logging.info(f"Availability for '{user}': {state}")
+            self.last_availability[user] = online
 
     def _publish_user_metrics(self, user: str, vals: Dict[str, Optional[float]]):
-        # Publish values but do not log the actual numbers, only the action
-        if vals.get("hr") is not None:
+        # Only publish values that have changed
+        last_vals = self.last_published_values.get(user, {})
+        
+        # Check each metric for changes
+        if vals.get("hr") is not None and vals.get("hr") != last_vals.get("hr"):
             self._publish(f"users/{user}/hr", str(int(vals["hr"])))
             logging.info(f"Published HR update for user '{user}'")
-        if vals.get("speed") is not None:
+            
+        if vals.get("speed") is not None and vals.get("speed") != last_vals.get("speed"):
             self._publish(f"users/{user}/speed", f"{float(vals['speed']):.2f}")
             logging.info(f"Published speed update for user '{user}'")
-        if vals.get("cadence") is not None:
+            
+        if vals.get("cadence") is not None and vals.get("cadence") != last_vals.get("cadence"):
             self._publish(f"users/{user}/cadence", str(int(vals["cadence"])))
             logging.info(f"Published cadence update for user '{user}'")
-        if vals.get("power") is not None:
+            
+        if vals.get("power") is not None and vals.get("power") != last_vals.get("power"):
             self._publish(f"users/{user}/power", str(int(vals["power"])))
             logging.info(f"Published power update for user '{user}'")
+            
+        # Update last published values
+        self.last_published_values[user] = {
+            "hr": vals.get("hr"),
+            "speed": vals.get("speed"), 
+            "cadence": vals.get("cadence"),
+            "power": vals.get("power")
+        }
 
     def start(self):
         # MQTT first
@@ -430,8 +449,6 @@ class MqttMonitor:
                     if self.last_hr_active_user:
                         self._availability(self.last_hr_active_user, True)
                         logging.info(f"Active HR user: {self.last_hr_active_user}")
-                        # Publish discovery when a user becomes active
-                        self._publish_discovery_for_user(self.last_hr_active_user)
 
         ch.on_broadcast_data = on_broadcast
         ch.on_burst_data = on_broadcast
