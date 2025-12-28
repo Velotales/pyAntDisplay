@@ -35,7 +35,7 @@ from typing import Dict, List, Optional
 import yaml
 from colorama import Fore, Style
 
-from .common import deep_merge_save, load_manufacturers, parse_common_pages
+from ..utils.common import deep_merge_save, load_manufacturers, parse_common_pages
 
 try:
     from openant.easy.channel import Channel

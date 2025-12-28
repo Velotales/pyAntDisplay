@@ -35,10 +35,10 @@ __version__ = "1.0.0"
 __author__ = "Velotales"
 __email__ = "velotales@users.noreply.github.com"
 
-from .bike_sensor import BikeSensor
-from .device_scanner import DeviceScanner
-from .heart_rate_monitor import HeartRateMonitor
-from .usb_detector import ANTUSBDetector
+from .core.device_scanner import DeviceScanner
+from .devices.bike_sensor import BikeSensor
+from .devices.heart_rate_monitor import HeartRateMonitor
+from .utils.usb_detector import ANTUSBDetector
 
 __all__ = [
     "DeviceScanner",

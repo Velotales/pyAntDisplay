@@ -43,13 +43,13 @@ except Exception:
 
 from colorama import Fore, Style
 
-from .config_manager import ConfigManager
-from .device_manager import DeviceManager
-from .device_scanner import DeviceScanner
-from .live_monitor import ANT_PLUS_NETWORK_KEY, LiveMonitor
-from .menu_manager import MenuManager
-from .mqtt_monitor import MqttMonitor
-from .usb_detector import ANTUSBDetector
+from .core.device_scanner import DeviceScanner
+from .managers.config_manager import ConfigManager
+from .managers.device_manager import DeviceManager
+from .managers.menu_manager import MenuManager
+from .ui.live_monitor import ANT_PLUS_NETWORK_KEY, LiveMonitor
+from .ui.mqtt_monitor import MqttMonitor
+from .utils.usb_detector import ANTUSBDetector
 
 
 def _deep_merge(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:

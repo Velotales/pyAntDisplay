@@ -30,7 +30,7 @@ import time
 
 from colorama import Back, Fore, Style
 
-from .device_scanner import DeviceScanner
+from ..core.device_scanner import DeviceScanner
 
 
 class MenuManager:

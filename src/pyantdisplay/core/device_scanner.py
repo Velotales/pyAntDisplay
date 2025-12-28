@@ -36,8 +36,8 @@ import colorama
 from colorama import Fore, Style
 
 from .ant_backend import AntBackend, ChannelType
-from .common import deep_merge_save, load_manufacturers, parse_common_pages
-from .usb_detector import ANTUSBDetector
+from ..utils.common import deep_merge_save, load_manufacturers, parse_common_pages
+from ..utils.usb_detector import ANTUSBDetector
 
 colorama.init()
 
@@ -86,7 +86,7 @@ class DeviceScanner:
             print(f"{Fore.BLUE}[DEBUG] Performing pre-flight checks...{Style.RESET_ALL}")
 
             # Check USB permissions and devices again
-            from .usb_detector import ANTUSBDetector
+            from ..utils.usb_detector import ANTUSBDetector
 
             usb_detector = ANTUSBDetector()
 

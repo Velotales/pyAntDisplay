@@ -30,8 +30,8 @@ import time
 
 from colorama import Back, Fore, Style
 
-from .bike_sensor import BikeSensor
-from .heart_rate_monitor import HeartRateMonitor
+from ..devices.bike_sensor import BikeSensor
+from ..devices.heart_rate_monitor import HeartRateMonitor
 
 
 class DeviceManager:
