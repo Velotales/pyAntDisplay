@@ -1,0 +1,12 @@
+# Dynastream ANT+ USB sticks udev rules
+# Secure access for users in the 'plugdev' group and via uaccess
+# Vendor: Dynastream Innovations (0x0fcf)
+
+SUBSYSTEM=="usb", ATTR{idVendor}=="0fcf", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+
+# Optionally match specific known product IDs (kept commented for brevity)
+# SUBSYSTEM=="usb", ATTR{idVendor}=="0fcf", ATTR{idProduct}=="1008", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+# SUBSYSTEM=="usb", ATTR{idVendor}=="0fcf", ATTR{idProduct}=="1009", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+
+# Prevent ModemManager from grabbing the ANT stick
+ATTR{idVendor}=="0fcf", ENV{ID_MM_DEVICE_IGNORE}="1"

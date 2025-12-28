@@ -1,0 +1,5 @@
+openant==1.2.0
+pyyaml==6.0.1
+colorama==0.4.6
+pyusb==1.2.1
+paho-mqtt==1.6.1

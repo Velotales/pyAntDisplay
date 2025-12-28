@@ -1,0 +1,26 @@
+# Sensor to user mapping for ANT+ Live Monitor
+# Populate device IDs after scanning (see found_devices.json)
+
+sensor_map:
+  users:
+    - name: Yolanda
+      hr_device_id: null   # Example: replace with actual HR device id
+      speed_device_id: null
+      cadence_device_id: null
+      power_device_id: null
+      use_wattbike: true
+    - name: Dane
+      hr_device_id: 25377    # Set your HR device id when known
+      speed_device_id: null
+      cadence_device_id: null
+      power_device_id: null
+      use_wattbike: true
+
+  wattbike:
+    speed_device_id: null   # Set known Wattbike speed sensor id
+    cadence_device_id: null # Set known Wattbike cadence sensor id
+    power_device_id: null   # Set known Wattbike power sensor id
+    auto_assign: true       # Assign shared sensors to last active HR user
+
+# Optional global settings
+wheel_circumference_m: 2.105

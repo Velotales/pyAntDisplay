@@ -1,0 +1,40 @@
+ant_network:
+  frequency: 57
+  key:
+  - 185
+  - 165
+  - 33
+  - 251
+  - 189
+  - 114
+  - 195
+  - 69
+app:
+  data_display_interval: 1
+  found_devices_file: found_devices.json
+  scan_timeout: 30
+  backend: "openant"  # or "python-ant"
+devices:
+  bike_data:
+    device_id: null
+    device_type: 121
+    enabled: true
+  heart_rate:
+    device_id: null
+    device_type: 120
+    enabled: true
+
+# MQTT configuration for Home Assistant integration
+mqtt:
+  host: "localhost"
+  port: 1883
+  username: null  # Override in config_local.yaml
+  password: null  # Override in config_local.yaml
+  base_topic: "pyantdisplay"
+  qos: 1
+  retain: true
+  stale_secs: 10
+  client_id: "pyantdisplay-mqtt"
+  discovery: true
+  discovery_prefix: "homeassistant"
+  tls: false

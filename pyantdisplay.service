@@ -1,0 +1,42 @@
+[Unit]
+Description=PyANTDisplay - ANT+ to MQTT Bridge Service
+Documentation=https://github.com/your-username/pyAntDisplay
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/pyAntDisplay
+Environment=PATH=/home/pi/pyAntDisplay/.venv/bin
+ExecStart=/home/pi/pyAntDisplay/.venv/bin/python -m pyantdisplay --mode mqtt --config config/sensor_map.yaml --app-config config/config.yaml --local-config config/config_local.yaml --save found_devices.json
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutStopSec=5
+Restart=always
+RestartSec=10
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/pi/pyAntDisplay
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# USB device access for ANT+ stick
+SupplementaryGroups=plugdev
+DevicePolicy=closed
+DeviceAllow=/dev/bus/usb
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pyantdisplay
+
+[Install]
+WantedBy=multi-user.target

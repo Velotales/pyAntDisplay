@@ -1,0 +1,8 @@
+# Manufacturer name lookup table for ANT+ page 80 IDs
+# Add or override entries as needed.
+
+manufacturers:
+  1: Garmin/Dynastream
+  # 13: Wahoo Fitness
+  # 32: Tacx
+  # 89: Suunto

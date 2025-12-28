@@ -1,0 +1,27 @@
+# Local machine overrides (merged over config/config.yaml)
+# Copy this file to config_local.yaml and customize for your setup
+# config_local.yaml is ignored by Git for security
+
+app:
+  backend: openant
+
+# Override device IDs discovered for your sensors
+devices:
+  heart_rate:
+    device_id: null  # Replace with your HR monitor device ID
+  bike_data:
+    device_id: null  # Replace with your bike sensor device ID
+
+# MQTT broker configuration (optional)
+mqtt:
+  host: "your-mqtt-broker.local"
+  port: 1883
+  username: "your_username"         # Optional: MQTT username
+  password: "your_password"         # Optional: MQTT password
+  base_topic: "pyantdisplay"
+  qos: 1
+  retain: true
+  stale_secs: 10
+  client_id: "pyantdisplay-mqtt"
+  discovery: true
+  discovery_prefix: "homeassistant"
