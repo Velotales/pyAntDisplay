@@ -27,8 +27,6 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["ant+", "fitness", "heart-rate", "cycling", "usb", "sensors", "mqtt", "home-assistant"]
-repository = "https://github.com/Velotales/pyAntDisplay"
-homepage = "https://github.com/Velotales/pyAntDisplay"
 dependencies = [
     "openant>=1.2.0",
     "pyyaml>=6.0.1",
@@ -48,6 +46,8 @@ dev = [
 ]
 
 [project.urls]
+Repository = "https://github.com/Velotales/pyAntDisplay"
+Homepage = "https://github.com/Velotales/pyAntDisplay"
 "Homepage" = "https://github.com/Velotales/pyAntDisplay"
 "Bug Reports" = "https://github.com/Velotales/pyAntDisplay/issues"
 "Source" = "https://github.com/Velotales/pyAntDisplay"
