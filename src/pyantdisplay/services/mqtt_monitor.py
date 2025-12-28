@@ -186,7 +186,6 @@ class MqttMonitor:
                 "metric": "hr",
                 "name": f"{user} Heart Rate",
                 "unit": "bpm",
-                "device_class": "heart_rate",
                 "state_class": "measurement",
                 "icon": "mdi:heart",
             },
