@@ -29,12 +29,19 @@ class TestDeviceScanner:
 
     @patch("pyantdisplay.services.device_scanner.AntBackend")
     @patch("pyantdisplay.services.device_scanner.load_manufacturers")
+    @patch("pyantdisplay.services.device_scanner.ANTUSBDetector")
     @patch("time.sleep")  # Prevent actual sleeping
     @patch("time.time")
     def test_scan_for_devices_initialization(
-        self, mock_time, mock_sleep, mock_load_manufacturers, mock_backend_class
+        self, mock_time, mock_sleep, mock_usb_detector_class, mock_load_manufacturers, mock_backend_class
     ):
         """Test scan initialization."""
+        # Mock USB detector to simulate found devices
+        mock_usb_detector = Mock()
+        mock_usb_detector.detect_ant_sticks.return_value = [{"device_id": "test_device"}]
+        mock_usb_detector.check_usb_permissions.return_value = True
+        mock_usb_detector_class.return_value = mock_usb_detector
+        
         mock_backend = Mock()
         mock_ant_node = Mock()
         mock_backend.create_node.return_value = mock_ant_node
