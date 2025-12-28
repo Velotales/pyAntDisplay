@@ -41,11 +41,11 @@ class DeviceManager:
         # Device instances
         self.hr_monitor = None
         self.bike_sensor = None
-        self.devices = []  # List of connected devices
+        self.devices: list = []  # List of connected devices
 
         # Latest data
-        self.hr_data = {}
-        self.bike_data = {}
+        self.hr_data: dict = {}
+        self.bike_data: dict = {}
 
     def connect_devices(self):
         """Connect to configured devices."""

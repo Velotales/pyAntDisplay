@@ -52,7 +52,7 @@ class DeviceScanner:
     ):
         self.network_key = network_key
         self.scan_timeout = scan_timeout
-        self.found_devices = {}
+        self.found_devices: dict = {}
         self.scanning = False
         self.node = None
         self.debug = debug
