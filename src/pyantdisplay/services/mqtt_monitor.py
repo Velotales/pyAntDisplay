@@ -261,6 +261,8 @@ class MqttMonitor:
                 "unique_id": obj_id,
                 "state_topic": state_topic,
                 "availability_topic": avail_topic,
+                "payload_available": "online",
+                "payload_not_available": "offline",
                 "qos": self.qos,
                 "device": device,
                 "retain": self.retain,
@@ -284,9 +286,14 @@ class MqttMonitor:
         # Only publish availability changes
         if self.last_availability.get(user) != online:
             state = "online" if online else "offline"
-            self._publish(f"users/{user}/availability", state)
-            logging.info(f"Availability for '{user}': {state}")
-            self.last_availability[user] = online
+            # Use retain=True for availability so HA gets state after restart
+            try:
+                full = f"{self.base_topic}/users/{user}/availability"
+                self.mqtt_client.publish(full, payload=state, qos=self.qos, retain=True)
+                logging.info(f"Availability for '{user}': {state}")
+                self.last_availability[user] = online
+            except Exception:
+                pass
 
     def _publish_user_metrics(self, user: str, vals: Dict[str, Optional[float]]):
         # Only publish values that have changed
