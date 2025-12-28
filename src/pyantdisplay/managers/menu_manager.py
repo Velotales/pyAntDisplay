@@ -25,12 +25,13 @@ SOFTWARE.
 Manages the interactive menu system and device scanning.
 """
 
-import json
 import time
 
 from colorama import Back, Fore, Style
 
-from ..core.device_scanner import DeviceScanner
+from ..services.device_scan import DeviceScanService
+from ..services.device_list import DeviceListService
+from ..ui.data_display import DataDisplayService
 
 
 class MenuManager:
@@ -41,6 +42,11 @@ class MenuManager:
         self.device_manager = device_manager
         self.usb_detector = usb_detector
         self.usb_stick_available = False
+        
+        # Initialize services
+        self._scan_service = None
+        self._list_service = None
+        self._display_service = None
 
     def check_usb_on_startup(self) -> bool:
         """Check for ANT+ USB stick on application startup."""
@@ -60,74 +66,58 @@ class MenuManager:
             for device in devices:
                 print(f"  📡 {device['name']}")
             self.usb_stick_available = True
+            self._initialize_services()
             return True
         else:
             print(f"{Fore.YELLOW}❌ No ANT+ USB stick found{Style.RESET_ALL}")
             print(f"{Fore.YELLOW}   Connect your ANT+ USB stick to enable device scanning{Style.RESET_ALL}")
             self.usb_stick_available = False
             return False
+    
+    def _initialize_services(self):
+        """Initialize services when USB stick is available."""
+        config = self.config_manager.config
+        self._scan_service = DeviceScanService(config)
+        self._list_service = DeviceListService(config)
 
-    def scan_for_devices(self):
-        """Scan for ANT+ devices and save to file."""
-        print(f"\n{Fore.CYAN}=== ANT+ Device Scanner ==={Style.RESET_ALL}")
-
-        # Check if USB stick is available
+    def _handle_device_scan(self):
+        """Handle device scanning menu option."""
         if not self.usb_stick_available:
             print(f"{Fore.RED}Cannot scan for devices: No ANT+ USB stick detected.{Style.RESET_ALL}")
             print(f"{Fore.YELLOW}Please connect your ANT+ USB stick and restart the application.{Style.RESET_ALL}")
-            return {}
-
-        config = self.config_manager.config
-        network_key = config["ant_network"]["key"]
-        scan_timeout = config["app"]["scan_timeout"]
-        backend_pref = config.get("app", {}).get("backend", None)
-
-        # Keep scanner output concise unless explicitly debugging
-        scanner = DeviceScanner(network_key, scan_timeout, debug=False, backend_preference=backend_pref)
-
-        print("Make sure your ANT+ devices are active and transmitting...")
-        print("Starting scan...")
-
-        # Load previously found devices
-        devices_file = config["app"]["found_devices_file"]
-        found_devices = scanner.load_found_devices(devices_file)
-
-        # Scan for new devices
-        new_devices = scanner.scan_for_devices()
-
-        # Merge with existing devices
-        found_devices.update(new_devices)
-
-        # Save updated device list
-        scanner.save_found_devices(devices_file)
-
-        return found_devices
-
-    def list_found_devices(self):
-        """Display list of found devices."""
-        devices_file = self.config_manager.config["app"]["found_devices_file"]
-
-        try:
-            with open(devices_file, "r") as f:
-                devices = json.load(f)
-        except FileNotFoundError:
-            print(f"{Fore.YELLOW}No found devices file. Run scan first.{Style.RESET_ALL}")
             return
-        except Exception as e:
-            print(f"{Fore.RED}Error loading found devices: {e}{Style.RESET_ALL}")
+        
+        self._scan_service.scan_for_devices()
+
+    def _handle_list_devices(self):
+        """Handle list devices menu option."""
+        if not self._list_service:
+            self._list_service = DeviceListService(self.config_manager.config)
+        self._list_service.list_found_devices()
+
+    def _handle_configure_devices(self):
+        """Handle configure devices menu option."""
+        if not self.usb_stick_available:
+            print(f"{Fore.YELLOW}Please connect an ANT+ USB stick and restart the application.{Style.RESET_ALL}")
             return
+            
+        self.config_manager.configure_devices_interactive()
+        # Update device manager with new config
+        self.device_manager.config = self.config_manager.config
 
-        if not devices:
-            print(f"{Fore.YELLOW}No devices found in {devices_file}{Style.RESET_ALL}")
+    def _handle_start_display(self):
+        """Handle start data display menu option."""
+        if not self.usb_stick_available:
+            print(f"{Fore.YELLOW}Please connect an ANT+ USB stick and restart the application.{Style.RESET_ALL}")
             return
-
-        print(f"\n{Fore.CYAN}=== Found ANT+ Devices ==={Style.RESET_ALL}")
-        print(f"{'ID':<8} {'Type':<6} {'Name':<25} {'Last Seen':<20}")
-        print("-" * 70)
-
-        for key, device in devices.items():
-            last_seen = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(device["last_seen"]))
-            print(f"{device['device_id']:<8} {device['device_type']:<6} " f"{device['device_name']:<25} {last_seen}")
+            
+        self.device_manager.connect_devices()
+        if self.device_manager.has_connected_devices():
+            if not self._display_service:
+                self._display_service = DataDisplayService(self.device_manager, self.device_manager.config)
+            self._display_service.display_data()
+        else:
+            print(f"{Fore.YELLOW}No ANT+ devices connected. Connect devices first using scan/configure options.{Style.RESET_ALL}")
 
     def show_menu(self):
         """Show the main menu and handle user interactions."""
@@ -161,27 +151,18 @@ class MenuManager:
 
                 if choice == "1":
                     if self.usb_stick_available:
-                        self.scan_for_devices()
+                        self._handle_device_scan()
                     else:
                         print(f"{Fore.YELLOW}Please connect an ANT+ USB stick and restart the application.{Style.RESET_ALL}")
                         
                 elif choice == "2":
-                    self.list_found_devices()
+                    self._handle_list_devices()
                     
                 elif choice == "3":
-                    if self.usb_stick_available:
-                        self.config_manager.configure_devices_interactive()
-                        # Update device manager with new config
-                        self.device_manager.config = self.config_manager.config
-                    else:
-                        print(f"{Fore.YELLOW}Please connect an ANT+ USB stick and restart the application.{Style.RESET_ALL}")
+                    self._handle_configure_devices()
                         
                 elif choice == "4":
-                    if self.usb_stick_available:
-                        self.device_manager.connect_devices()
-                        self.device_manager.display_data()
-                    else:
-                        print(f"{Fore.YELLOW}Please connect an ANT+ USB stick and restart the application.{Style.RESET_ALL}")
+                    self._handle_start_display()
                         
                 elif choice == "5":
                     self.usb_detector.print_setup_instructions()
