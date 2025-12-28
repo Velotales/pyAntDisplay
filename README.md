@@ -7,6 +7,10 @@ A Python application for reading data from ANT+ devices using an ANT+ USB stick.
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Platform Support
+
+**⚠️ Linux Only**: This application is currently tested and supported only on Ubuntu/Debian systems. While the code may work on other Linux distributions, macOS, or Windows, it has not been tested on these platforms and USB device access may require additional configuration.
+
 ## Features
 
 - **Device Discovery**: Scan for available ANT+ devices and save them to a configuration file
@@ -57,23 +61,15 @@ cd pyAntDisplay
 
 2. Set up the virtual environment and install dependencies:
 
-**Linux/macOS:**
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Windows:**
-```cmd
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
 This will create a virtual environment in the `.venv/` directory and install all required packages. Runtime data (discovered devices, logs) will be stored in the `data/` directory.
 
-3. Make sure your ANT+ USB stick is connected and accessible. On Linux, you may need to set up udev rules for USB access:
+3. Make sure your ANT+ USB stick is connected and accessible. You may need to set up udev rules for USB access:
 
 ```bash
 # Create udev rule for ANT+ stick (adjust vendor/product ID as needed)
@@ -97,7 +93,8 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 PyANTDisplay supports five different modes via the unified entry point:
 
 ```bash
-# Linux/macOS
+# Activate the virtual environment
+source .venv/bin/activate
 source .venv/bin/activate
 
 # Windows  
