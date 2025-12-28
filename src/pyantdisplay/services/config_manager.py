@@ -25,7 +25,6 @@ SOFTWARE.
 Handles configuration loading, saving, and device configuration.
 """
 
-import json
 import sys
 
 import yaml

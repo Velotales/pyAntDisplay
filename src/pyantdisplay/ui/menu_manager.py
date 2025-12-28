@@ -25,8 +25,6 @@ SOFTWARE.
 Manages the interactive menu system and device scanning.
 """
 
-import time
-
 from colorama import Back, Fore, Style
 
 from ..services.device_scan import DeviceScanService

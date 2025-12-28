@@ -5,19 +5,17 @@ Tests for bike sensor functionality.
 import sys
 from unittest.mock import Mock, MagicMock, patch
 
-import pytest
-
 # Mock openant modules at import time to prevent USB device access
-sys.modules['openant'] = MagicMock()
-sys.modules['openant.easy'] = MagicMock()
-sys.modules['openant.easy.node'] = MagicMock()
-sys.modules['openant.easy.channel'] = MagicMock()
+sys.modules["openant"] = MagicMock()
+sys.modules["openant.easy"] = MagicMock()
+sys.modules["openant.easy.node"] = MagicMock()
+sys.modules["openant.easy.channel"] = MagicMock()
 
 # Mock the Node and Channel classes
 mock_node = MagicMock()
 mock_channel = MagicMock()
-sys.modules['openant.easy.node'].Node = mock_node
-sys.modules['openant.easy.channel'].Channel = mock_channel
+sys.modules["openant.easy.node"].Node = mock_node
+sys.modules["openant.easy.channel"].Channel = mock_channel
 
 from pyantdisplay.devices.bike_sensor import BikeSensor
 
@@ -182,13 +180,14 @@ class TestBikeSensor:
     def test_on_bike_data_subsequent_calls(self, mock_time):
         """Test subsequent bike data processing with speed/cadence calculation."""
         mock_time.side_effect = [1234567890, 1234567892]  # 2 second difference
-        
+
         device_id = 67890
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         bike_sensor = BikeSensor(device_id, network_key, wheel_circumference=2.0)
 
         # Mock callback
         callback_data = None
+
         def mock_callback(data):
             nonlocal callback_data
             callback_data = data
@@ -198,7 +197,7 @@ class TestBikeSensor:
         # First data point - establishes baseline
         data1 = [0x10, 0x20, 0x05, 0x00, 0x30, 0x40, 0x0A, 0x00]
         bike_sensor._on_bike_data(data1)
-        
+
         # Second data point - should calculate speed/cadence
         data2 = [0x20, 0x20, 0x06, 0x00, 0x40, 0x40, 0x0C, 0x00]
         bike_sensor._on_bike_data(data2)
@@ -216,48 +215,6 @@ class TestBikeSensor:
         # Test with data too short
         short_data = [0x10, 0x20]
         bike_sensor._on_bike_data(short_data)
-        
-        # Should not update anything
-        assert bike_sensor.last_update == 0
 
-    @patch("time.time")
-    def test_on_bike_data_subsequent_calls(self, mock_time):
-        """Test subsequent bike data processing with speed/cadence calculation."""
-        mock_time.side_effect = [1234567890, 1234567892]  # 2 second difference
-        
-        device_id = 67890
-        network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
-        bike_sensor = BikeSensor(device_id, network_key, wheel_circumference=2.0)
-
-        # Mock callback
-        callback_data = None
-        def mock_callback(data):
-            nonlocal callback_data
-            callback_data = data
-
-        bike_sensor.on_bike_data = mock_callback
-
-        # First data point - establishes baseline
-        data1 = [0x10, 0x20, 0x05, 0x00, 0x30, 0x40, 0x0A, 0x00]
-        bike_sensor._on_bike_data(data1)
-        
-        # Second data point - should calculate speed/cadence
-        data2 = [0x20, 0x20, 0x06, 0x00, 0x40, 0x40, 0x0C, 0x00]
-        bike_sensor._on_bike_data(data2)
-
-        # Should have updated speed/cadence
-        assert bike_sensor.last_update == 1234567892
-        assert callback_data is not None
-
-    def test_on_bike_data_invalid_data(self):
-        """Test bike data processing with invalid/short data."""
-        device_id = 67890
-        network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
-        bike_sensor = BikeSensor(device_id, network_key)
-
-        # Test with data too short
-        short_data = [0x10, 0x20]
-        bike_sensor._on_bike_data(short_data)
-        
         # Should not update anything
         assert bike_sensor.last_update == 0

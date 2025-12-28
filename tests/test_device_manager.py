@@ -5,19 +5,17 @@ Tests for device manager functionality.
 import sys
 from unittest.mock import Mock, MagicMock, patch
 
-import pytest
-
 # Mock openant modules at import time to prevent USB device access
-sys.modules['openant'] = MagicMock()
-sys.modules['openant.easy'] = MagicMock()
-sys.modules['openant.easy.node'] = MagicMock()
-sys.modules['openant.easy.channel'] = MagicMock()
+sys.modules["openant"] = MagicMock()
+sys.modules["openant.easy"] = MagicMock()
+sys.modules["openant.easy.node"] = MagicMock()
+sys.modules["openant.easy.channel"] = MagicMock()
 
 # Mock the Node and Channel classes
 mock_node = MagicMock()
 mock_channel = MagicMock()
-sys.modules['openant.easy.node'].Node = mock_node
-sys.modules['openant.easy.channel'].Channel = mock_channel
+sys.modules["openant.easy.node"].Node = mock_node
+sys.modules["openant.easy.channel"].Channel = mock_channel
 
 from pyantdisplay.managers.device_manager import DeviceManager
 
@@ -31,8 +29,8 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": True, "device_id": 12345},
-                "bike_data": {"enabled": True, "device_id": 67890}
-            }
+                "bike_data": {"enabled": True, "device_id": 67890},
+            },
         }
 
         device_manager = DeviceManager(config)
@@ -47,14 +45,16 @@ class TestDeviceManager:
 
     @patch("pyantdisplay.managers.device_manager.HeartRateMonitor")
     @patch("pyantdisplay.managers.device_manager.BikeSensor")
-    def test_connect_devices_both_enabled_success(self, mock_bike_sensor_class, mock_hr_monitor_class):
+    def test_connect_devices_both_enabled_success(
+        self, mock_bike_sensor_class, mock_hr_monitor_class
+    ):
         """Test connecting devices when both are enabled and connection succeeds."""
         config = {
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": True, "device_id": 12345},
-                "bike_data": {"enabled": True, "device_id": 67890}
-            }
+                "bike_data": {"enabled": True, "device_id": 67890},
+            },
         }
 
         # Mock device instances
@@ -70,8 +70,12 @@ class TestDeviceManager:
         device_manager.connect_devices()
 
         # Verify device creation
-        mock_hr_monitor_class.assert_called_once_with(12345, [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45])
-        mock_bike_sensor_class.assert_called_once_with(67890, [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45])
+        mock_hr_monitor_class.assert_called_once_with(
+            12345, [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
+        )
+        mock_bike_sensor_class.assert_called_once_with(
+            67890, [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
+        )
 
         # Verify connections attempted
         mock_hr_monitor.connect.assert_called_once()
@@ -88,14 +92,16 @@ class TestDeviceManager:
 
     @patch("pyantdisplay.managers.device_manager.HeartRateMonitor")
     @patch("pyantdisplay.managers.device_manager.BikeSensor")
-    def test_connect_devices_connection_failures(self, mock_bike_sensor_class, mock_hr_monitor_class):
+    def test_connect_devices_connection_failures(
+        self, mock_bike_sensor_class, mock_hr_monitor_class
+    ):
         """Test connecting devices when connections fail."""
         config = {
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": True, "device_id": 12345},
-                "bike_data": {"enabled": True, "device_id": 67890}
-            }
+                "bike_data": {"enabled": True, "device_id": 67890},
+            },
         }
 
         # Mock device instances with connection failures
@@ -119,11 +125,13 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": 12345},
-                "bike_data": {"enabled": True, "device_id": 67890}
-            }
+                "bike_data": {"enabled": True, "device_id": 67890},
+            },
         }
 
-        with patch("pyantdisplay.managers.device_manager.BikeSensor") as mock_bike_sensor_class:
+        with patch(
+            "pyantdisplay.managers.device_manager.BikeSensor"
+        ) as mock_bike_sensor_class:
             mock_bike_sensor = Mock()
             mock_bike_sensor.connect.return_value = True
             mock_bike_sensor_class.return_value = mock_bike_sensor
@@ -142,11 +150,13 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": True, "device_id": None},
-                "bike_data": {"enabled": True, "device_id": 67890}
-            }
+                "bike_data": {"enabled": True, "device_id": 67890},
+            },
         }
 
-        with patch("pyantdisplay.managers.device_manager.BikeSensor") as mock_bike_sensor_class:
+        with patch(
+            "pyantdisplay.managers.device_manager.BikeSensor"
+        ) as mock_bike_sensor_class:
             mock_bike_sensor = Mock()
             mock_bike_sensor.connect.return_value = True
             mock_bike_sensor_class.return_value = mock_bike_sensor
@@ -165,8 +175,8 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)
@@ -182,8 +192,8 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)
@@ -199,8 +209,8 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)
@@ -225,14 +235,16 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)
 
         # Mock get_connected_devices to return non-empty list
-        with patch.object(device_manager, 'get_connected_devices', return_value=[Mock()]):
+        with patch.object(
+            device_manager, "get_connected_devices", return_value=[Mock()]
+        ):
             assert device_manager.has_connected_devices() is True
 
     def test_has_connected_devices_false(self):
@@ -241,14 +253,14 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)
 
         # Mock get_connected_devices to return empty list
-        with patch.object(device_manager, 'get_connected_devices', return_value=[]):
+        with patch.object(device_manager, "get_connected_devices", return_value=[]):
             assert device_manager.has_connected_devices() is False
 
     def test_stop(self):
@@ -257,8 +269,8 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)
@@ -282,8 +294,8 @@ class TestDeviceManager:
             "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]},
             "devices": {
                 "heart_rate": {"enabled": False, "device_id": None},
-                "bike_data": {"enabled": False, "device_id": None}
-            }
+                "bike_data": {"enabled": False, "device_id": None},
+            },
         }
 
         device_manager = DeviceManager(config)

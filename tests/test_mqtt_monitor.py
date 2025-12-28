@@ -16,12 +16,15 @@ openant_mock.easy = Mock()
 openant_mock.easy.node = Mock()
 openant_mock.easy.channel = Mock()
 
-with patch.dict('sys.modules', {
-    'openant': openant_mock,
-    'openant.easy': openant_mock.easy,
-    'openant.easy.node': openant_mock.easy.node,
-    'openant.easy.channel': openant_mock.easy.channel,
-}):
+with patch.dict(
+    "sys.modules",
+    {
+        "openant": openant_mock,
+        "openant.easy": openant_mock.easy,
+        "openant.easy.node": openant_mock.easy.node,
+        "openant.easy.channel": openant_mock.easy.channel,
+    },
+):
     from src.pyantdisplay.services.mqtt_monitor import MqttMonitor
 
 
@@ -49,15 +52,15 @@ mqtt:
         """Test basic MQTT monitor initialization."""
         mock_yaml_load.side_effect = [
             {"devices": [{"device_type": 120, "device_id": 12345}]},  # sensor config
-            {"mqtt": {"enabled": True, "broker": "localhost"}}  # app config
+            {"mqtt": {"enabled": True, "broker": "localhost"}},  # app config
         ]
-        
+
         monitor = MqttMonitor(
             sensor_config_path="sensors.yaml",
             save_path="/tmp/data",
-            app_config_path="config.yaml"
+            app_config_path="config.yaml",
         )
-        
+
         assert monitor.sensor_config_path == "sensors.yaml"
         assert monitor.save_path == "/tmp/data"
         assert monitor.app_config_path == "config.yaml"
@@ -69,17 +72,12 @@ mqtt:
     @patch("yaml.safe_load")
     def test_init_with_debug(self, mock_yaml_load):
         """Test MQTT monitor initialization with debug enabled."""
-        mock_yaml_load.side_effect = [
-            {"devices": []},
-            {"mqtt": {"enabled": True}}
-        ]
-        
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+
         monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data",
-            debug=True
+            sensor_config_path="sensors.yaml", save_path="/tmp/data", debug=True
         )
-        
+
         assert monitor.debug is True
 
     @patch("builtins.open", mock_open())
@@ -89,16 +87,16 @@ mqtt:
         mock_yaml_load.side_effect = [
             {"devices": []},  # sensor config
             {"mqtt": {"enabled": True, "broker": "localhost"}},  # main app config
-            {"mqtt": {"broker": "local.host", "port": 1884}}  # local override
+            {"mqtt": {"broker": "local.host", "port": 1884}},  # local override
         ]
-        
+
         monitor = MqttMonitor(
             sensor_config_path="sensors.yaml",
             save_path="/tmp/data",
             app_config_path="config.yaml",
-            local_app_config_path="local.yaml"
+            local_app_config_path="local.yaml",
         )
-        
+
         assert monitor.local_app_config_path == "local.yaml"
 
     @patch("builtins.open", side_effect=FileNotFoundError("Config not found"))
@@ -107,8 +105,7 @@ mqtt:
         # The MqttMonitor constructor calls _load_yaml which handles FileNotFoundError
         try:
             monitor = MqttMonitor(
-                sensor_config_path="nonexistent.yaml",
-                save_path="/tmp/data"
+                sensor_config_path="nonexistent.yaml", save_path="/tmp/data"
             )
             # If we get here, the constructor handled the missing file gracefully
             assert True
@@ -120,18 +117,12 @@ mqtt:
     @patch("yaml.safe_load")
     def test_device_values_thread_safety(self, mock_yaml_load):
         """Test thread-safe access to device values."""
-        mock_yaml_load.side_effect = [
-            {"devices": []},
-            {"mqtt": {"enabled": True}}
-        ]
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         # Test that lock exists and is a threading.Lock instance
-        assert hasattr(monitor, 'lock')
+        assert hasattr(monitor, "lock")
         assert isinstance(monitor.lock, type(threading.Lock()))
         assert monitor.device_values == {}
         assert monitor.user_values == {}
@@ -140,16 +131,10 @@ mqtt:
     @patch("yaml.safe_load")
     def test_stop_event_initialization(self, mock_yaml_load):
         """Test that stop event is properly initialized."""
-        mock_yaml_load.side_effect = [
-            {"devices": []},
-            {"mqtt": {"enabled": True}}
-        ]
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         assert isinstance(monitor.stop_event, threading.Event)
         assert not monitor.stop_event.is_set()
 
@@ -161,16 +146,16 @@ mqtt:
         mock_yaml_load.side_effect = [
             {"devices": [{"device_type": 120}]},  # sensor config
             {"mqtt": {"enabled": True, "broker": "main.host"}},  # main config
-            {"mqtt": {"broker": "override.host", "port": 1884}}  # local override
+            {"mqtt": {"broker": "override.host", "port": 1884}},  # local override
         ]
-        
+
         monitor = MqttMonitor(
             sensor_config_path="sensors.yaml",
             save_path="/tmp/data",
             app_config_path="main.yaml",
-            local_app_config_path="local.yaml"
+            local_app_config_path="local.yaml",
         )
-        
+
         # The _merge_yaml method should have been called
         assert monitor.app_config is not None
 
@@ -180,15 +165,14 @@ mqtt:
         """Test handling of invalid YAML configurations."""
         # Mock sensor config and app config
         mock_yaml_load.side_effect = [
-            {"devices": []},  # Valid sensor config 
-            None  # Invalid app config
+            {"devices": []},  # Valid sensor config
+            None,  # Invalid app config
         ]
-        
+
         # This test verifies that the monitor can handle malformed YAML
         try:
             monitor = MqttMonitor(
-                sensor_config_path="sensors.yaml",
-                save_path="/tmp/data"
+                sensor_config_path="sensors.yaml", save_path="/tmp/data"
             )
             # If it doesn't raise an exception, that's acceptable
             assert True
@@ -200,16 +184,10 @@ mqtt:
     @patch("yaml.safe_load")
     def test_default_config_paths(self, mock_yaml_load):
         """Test default configuration paths."""
-        mock_yaml_load.side_effect = [
-            {"devices": []},
-            {"mqtt": {"enabled": True}}
-        ]
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         # Should use default app config path
         assert monitor.app_config_path == "config/config.yaml"
         assert monitor.local_app_config_path is None
@@ -218,16 +196,10 @@ mqtt:
     @patch("yaml.safe_load")
     def test_thread_initialization(self, mock_yaml_load):
         """Test that thread-related attributes are properly initialized."""
-        mock_yaml_load.side_effect = [
-            {"devices": []},
-            {"mqtt": {"enabled": True}}
-        ]
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+        mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         assert monitor.loop_thread is None
         assert monitor.last_hr_active_user is None
 
@@ -237,14 +209,11 @@ mqtt:
         """Test that configurations are loaded during initialization."""
         sensor_config = {"devices": [{"device_type": 120, "device_id": 12345}]}
         app_config = {"mqtt": {"enabled": True, "broker": "test.local"}}
-        
+
         mock_yaml_load.side_effect = [sensor_config, app_config]
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         # Verify configs were loaded
         assert monitor.sensor_config == sensor_config
         assert monitor.app_config == app_config
@@ -254,13 +223,10 @@ mqtt:
     def test_save_path_assignment(self, mock_yaml_load):
         """Test that save path is properly assigned."""
         mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
-        
+
         save_path = "/custom/save/path"
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path=save_path
-        )
-        
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path=save_path)
+
         assert monitor.save_path == save_path
 
     @patch("builtins.open", mock_open())
@@ -268,12 +234,9 @@ mqtt:
     def test_empty_configurations(self, mock_yaml_load):
         """Test handling of empty configuration files."""
         mock_yaml_load.side_effect = [{}, {}]  # Empty configs
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         assert monitor.sensor_config == {}
         assert monitor.app_config == {}
         assert monitor.channels == []
@@ -283,12 +246,9 @@ mqtt:
     def test_state_initialization(self, mock_yaml_load):
         """Test that internal state is properly initialized."""
         mock_yaml_load.side_effect = [{"devices": []}, {"mqtt": {"enabled": True}}]
-        
-        monitor = MqttMonitor(
-            sensor_config_path="sensors.yaml",
-            save_path="/tmp/data"
-        )
-        
+
+        monitor = MqttMonitor(sensor_config_path="sensors.yaml", save_path="/tmp/data")
+
         # Verify all state variables are initialized
         assert isinstance(monitor.device_values, dict)
         assert isinstance(monitor.user_values, dict)

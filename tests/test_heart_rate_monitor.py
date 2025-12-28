@@ -5,19 +5,17 @@ Tests for heart rate monitor functionality.
 import sys
 from unittest.mock import Mock, MagicMock, patch
 
-import pytest
-
 # Mock openant modules at import time to prevent USB device access
-sys.modules['openant'] = MagicMock()
-sys.modules['openant.easy'] = MagicMock()
-sys.modules['openant.easy.node'] = MagicMock()
-sys.modules['openant.easy.channel'] = MagicMock()
+sys.modules["openant"] = MagicMock()
+sys.modules["openant.easy"] = MagicMock()
+sys.modules["openant.easy.node"] = MagicMock()
+sys.modules["openant.easy.channel"] = MagicMock()
 
 # Mock the Node and Channel classes
 mock_node = MagicMock()
 mock_channel = MagicMock()
-sys.modules['openant.easy.node'].Node = mock_node
-sys.modules['openant.easy.channel'].Channel = mock_channel
+sys.modules["openant.easy.node"].Node = mock_node
+sys.modules["openant.easy.channel"].Channel = mock_channel
 
 from pyantdisplay.devices.heart_rate_monitor import HeartRateMonitor
 

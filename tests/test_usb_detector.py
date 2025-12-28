@@ -2,9 +2,7 @@
 Tests for USB detector functionality.
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import patch, Mock
 
 from pyantdisplay.utils.usb_detector import ANTUSBDetector
 

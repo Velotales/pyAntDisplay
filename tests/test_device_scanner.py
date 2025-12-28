@@ -4,8 +4,6 @@ Tests for device scanner functionality.
 
 from unittest.mock import MagicMock, Mock, patch
 
-import pytest
-
 from pyantdisplay.services.device_scanner import DeviceScanner
 
 
@@ -19,7 +17,7 @@ class TestDeviceScanner:
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key, scan_timeout=10)
 
@@ -33,14 +31,16 @@ class TestDeviceScanner:
     @patch("pyantdisplay.services.device_scanner.load_manufacturers")
     @patch("time.sleep")  # Prevent actual sleeping
     @patch("time.time")
-    def test_scan_for_devices_initialization(self, mock_time, mock_sleep, mock_load_manufacturers, mock_backend_class):
+    def test_scan_for_devices_initialization(
+        self, mock_time, mock_sleep, mock_load_manufacturers, mock_backend_class
+    ):
         """Test scan initialization."""
         mock_backend = Mock()
         mock_ant_node = Mock()
         mock_backend.create_node.return_value = mock_ant_node
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         # Simulate immediate timeout to prevent hanging
         mock_time.side_effect = [0, 2]
 
@@ -61,7 +61,7 @@ class TestDeviceScanner:
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key)
 
@@ -86,15 +86,22 @@ class TestDeviceScanner:
     @patch("builtins.open", create=True)
     @patch("json.load")
     @patch("json.dump")
-    def test_save_found_devices(self, mock_json_dump, mock_json_load, mock_open, mock_load_manufacturers, mock_backend_class):
+    def test_save_found_devices(
+        self,
+        mock_json_dump,
+        mock_json_load,
+        mock_open,
+        mock_load_manufacturers,
+        mock_backend_class,
+    ):
         """Test saving found devices to file."""
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         # Mock the file reading to return empty dict (simulating no existing file)
         mock_json_load.side_effect = FileNotFoundError()
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key)
 
@@ -119,12 +126,14 @@ class TestDeviceScanner:
     @patch("pyantdisplay.services.device_scanner.load_manufacturers")
     @patch("builtins.open", create=True)
     @patch("json.load")
-    def test_load_found_devices_success(self, mock_json_load, mock_open, mock_load_manufacturers, mock_backend_class):
+    def test_load_found_devices_success(
+        self, mock_json_load, mock_open, mock_load_manufacturers, mock_backend_class
+    ):
         """Test loading found devices from file."""
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key)
 
@@ -145,12 +154,14 @@ class TestDeviceScanner:
     @patch("pyantdisplay.services.device_scanner.AntBackend")
     @patch("pyantdisplay.services.device_scanner.load_manufacturers")
     @patch("builtins.open", side_effect=FileNotFoundError)
-    def test_load_found_devices_file_not_found(self, mock_open, mock_load_manufacturers, mock_backend_class):
+    def test_load_found_devices_file_not_found(
+        self, mock_open, mock_load_manufacturers, mock_backend_class
+    ):
         """Test loading devices when file doesn't exist."""
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key)
 
@@ -165,7 +176,7 @@ class TestDeviceScanner:
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key)
 
@@ -181,9 +192,9 @@ class TestDeviceScanner:
         mock_backend = Mock()
         mock_backend_class.return_value = mock_backend
         mock_load_manufacturers.return_value = {}
-        
+
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key, scan_timeout=1)
-        
+
         # Verify timeout is set correctly
         assert scanner.scan_timeout == 1
