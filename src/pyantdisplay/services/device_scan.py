@@ -32,7 +32,7 @@ from .device_scanner import DeviceScanner
 
 class DeviceScanService:
     """Handles ANT+ device scanning operations."""
-    
+
     def __init__(self, config: dict):
         self.config = config
 
@@ -45,7 +45,9 @@ class DeviceScanService:
         backend_pref = self.config.get("app", {}).get("backend", None)
 
         # Keep scanner output concise unless explicitly debugging
-        scanner = DeviceScanner(network_key, scan_timeout, debug=False, backend_preference=backend_pref)
+        scanner = DeviceScanner(
+            network_key, scan_timeout, debug=False, backend_preference=backend_pref
+        )
 
         print("Make sure your ANT+ devices are active and transmitting...")
         print("Starting scan...")

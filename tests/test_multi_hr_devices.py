@@ -44,24 +44,24 @@ class TestMultiHRDevices:
                         "speed_device_id": None,
                     },
                     {
-                        "name": "Sarah", 
+                        "name": "Sarah",
                         "hr_device_ids": [11111],  # Single HR device
                         "speed_device_id": None,
-                    }
+                    },
                 ]
             }
         }
-        
+
         with patch("builtins.open"), patch("yaml.safe_load", return_value=mock_config):
             monitor = LiveMonitor("test_config.yaml", "test_save.json")
-            
+
             # Test that both HR devices map to John
             assert monitor._user_for_hr(12345) == "John"
             assert monitor._user_for_hr(67890) == "John"
-            
+
             # Test that Sarah's device maps correctly
             assert monitor._user_for_hr(11111) == "Sarah"
-            
+
             # Test unknown device returns None
             assert monitor._user_for_hr(99999) is None
 
@@ -79,10 +79,10 @@ class TestMultiHRDevices:
                 ]
             }
         }
-        
+
         with patch("builtins.open"), patch("yaml.safe_load", return_value=mock_config):
             monitor = LiveMonitor("test_config.yaml", "test_save.json")
-            
+
             # Test that old format still works
             assert monitor._user_for_hr(12345) == "John"
             assert monitor._user_for_hr(99999) is None
@@ -100,25 +100,19 @@ class TestMultiHRDevices:
                 ]
             }
         }
-        
-        app_config = {
-            "mqtt": {
-                "host": "localhost",
-                "port": 1883,
-                "base_topic": "test"
-            }
-        }
-        
-        with patch("builtins.open"), \
-             patch("yaml.safe_load") as mock_yaml, \
-             patch("pyantdisplay.ui.mqtt_monitor.mqtt") as mock_mqtt:
-            
+
+        app_config = {"mqtt": {"host": "localhost", "port": 1883, "base_topic": "test"}}
+
+        with patch("builtins.open"), patch("yaml.safe_load") as mock_yaml, patch(
+            "pyantdisplay.ui.mqtt_monitor.mqtt"
+        ) as mock_mqtt:
+
             mock_yaml.side_effect = [sensor_config, app_config]
             mock_mqtt.Client.return_value = MagicMock()
-            
+
             monitor = MqttMonitor("sensor_config.yaml", "save.json", "app_config.yaml")
-            
-            # Test that both HR devices map to John  
+
+            # Test that both HR devices map to John
             assert monitor._user_for_hr(12345) == "John"
             assert monitor._user_for_hr(67890) == "John"
             assert monitor._user_for_hr(99999) is None
@@ -134,32 +128,32 @@ class TestMultiHRDevices:
                         "speed_device_id": None,
                     }
                 ],
-                "wattbike": {}
+                "wattbike": {},
             }
         }
-        
-        with patch("builtins.open"), \
-             patch("yaml.safe_load", return_value=mock_config), \
-             patch("pyantdisplay.ui.live_monitor.load_manufacturers", return_value={}):
-            
+
+        with patch("builtins.open"), patch(
+            "yaml.safe_load", return_value=mock_config
+        ), patch("pyantdisplay.ui.live_monitor.load_manufacturers", return_value={}):
+
             monitor = LiveMonitor("test_config.yaml", "test_save.json")
             monitor._open_channel = MagicMock()
-            
+
             # Mock the channels and user_values initialization
             monitor.channels = []
             monitor.user_values = {}
-            
+
             monitor._open_configured_channels()
-            
+
             # Verify channels were opened for both HR devices
             expected_calls = [
                 ((12345, 120, "John-HR1"), {}),
                 ((67890, 120, "John-HR2"), {}),
             ]
-            
+
             actual_calls = monitor._open_channel.call_args_list
             assert len(actual_calls) == 2
-            
+
             # Check that user was initialized in user_values
             assert "John" in monitor.user_values
             assert monitor.user_values["John"]["hr"] is None

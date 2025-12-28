@@ -158,11 +158,15 @@ class AntBackend:
                 import python_ant  # type: ignore # noqa: F401
 
                 if self.debug:
-                    print(f"{Fore.BLUE}[DEBUG] Selected backend: python-ant{Style.RESET_ALL}")
+                    print(
+                        f"{Fore.BLUE}[DEBUG] Selected backend: python-ant{Style.RESET_ALL}"
+                    )
                 # Not implemented: provide wrappers when library is available
                 self.name = "python-ant"
                 # For now, raise to fallback unless implemented
-                raise ImportError("python-ant backend not implemented in this environment")
+                raise ImportError(
+                    "python-ant backend not implemented in this environment"
+                )
             except Exception as e:
                 if self.debug:
                     print(

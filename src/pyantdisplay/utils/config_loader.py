@@ -38,10 +38,14 @@ from colorama import Fore, Style
 class ConfigLoader:
     """Handles configuration file loading and merging."""
 
-    def load_app_config(self, app_config: str, local_config: Optional[str] = None) -> Dict[str, Any]:
+    def load_app_config(
+        self, app_config: str, local_config: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Load application configuration with optional local overrides."""
         if yaml is None:
-            print(f"{Fore.RED}PyYAML not available, using empty config{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}PyYAML not available, using empty config{Style.RESET_ALL}"
+            )
             return {}
 
         # Load base config

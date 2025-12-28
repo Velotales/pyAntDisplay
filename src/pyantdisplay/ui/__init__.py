@@ -2,4 +2,4 @@
 
 from .data_display import DataDisplayService
 
-__all__ = ['DataDisplayService']
+__all__ = ["DataDisplayService"]

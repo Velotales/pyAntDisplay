@@ -38,7 +38,9 @@ colorama.init()
 
 
 class BikeSensor:
-    def __init__(self, device_id: int, network_key: list, wheel_circumference: float = 2.1):
+    def __init__(
+        self, device_id: int, network_key: list, wheel_circumference: float = 2.1
+    ):
         self.device_id = device_id
         self.network_key = network_key
         self.wheel_circumference = wheel_circumference  # meters
@@ -66,11 +68,15 @@ class BikeSensor:
     def connect(self) -> bool:
         """Connect to the bike sensor."""
         try:
-            print(f"{Fore.CYAN}Connecting to Bike Sensor (ID: {self.device_id})...{Style.RESET_ALL}")
+            print(
+                f"{Fore.CYAN}Connecting to Bike Sensor (ID: {self.device_id})...{Style.RESET_ALL}"
+            )
 
             self.node = Node()
             # Run event loop in background; Node.start() is blocking
-            self.loop_thread = threading.Thread(target=self.node.start, name="openant.easy.main", daemon=True)
+            self.loop_thread = threading.Thread(
+                target=self.node.start, name="openant.easy.main", daemon=True
+            )
             self.loop_thread.start()
 
             # Set network key on network 0
@@ -87,7 +93,9 @@ class BikeSensor:
             self.channel.set_period(8086)  # Standard bike sensor period
             self.channel.set_search_timeout(30)
             self.channel.set_rf_freq(57)  # ANT+ frequency
-            self.channel.set_id(self.device_id, 121, 0)  # Speed and cadence device type is 121
+            self.channel.set_id(
+                self.device_id, 121, 0
+            )  # Speed and cadence device type is 121
             # Prefer extended messages when available
             try:
                 self.channel.enable_extended_messages(True)
@@ -150,8 +158,12 @@ class BikeSensor:
 
             # Calculate cadence (RPM)
             if self._last_cadence_event_time != 0:
-                cadence_time_diff = (cadence_event_time - self._last_cadence_event_time) & 0xFFFF
-                cadence_rev_diff = (cadence_revolution_count - self._last_cadence_revolution_count) & 0xFFFF
+                cadence_time_diff = (
+                    cadence_event_time - self._last_cadence_event_time
+                ) & 0xFFFF
+                cadence_rev_diff = (
+                    cadence_revolution_count - self._last_cadence_revolution_count
+                ) & 0xFFFF
 
                 if cadence_time_diff > 0 and cadence_rev_diff > 0:
                     # Convert to RPM (revolutions per minute)
@@ -160,12 +172,18 @@ class BikeSensor:
 
             # Calculate speed (km/h)
             if self._last_speed_event_time != 0:
-                speed_time_diff = (speed_event_time - self._last_speed_event_time) & 0xFFFF
-                speed_rev_diff = (speed_revolution_count - self._last_speed_revolution_count) & 0xFFFF
+                speed_time_diff = (
+                    speed_event_time - self._last_speed_event_time
+                ) & 0xFFFF
+                speed_rev_diff = (
+                    speed_revolution_count - self._last_speed_revolution_count
+                ) & 0xFFFF
 
                 if speed_time_diff > 0 and speed_rev_diff > 0:
                     # Calculate speed
-                    distance_traveled = speed_rev_diff * self.wheel_circumference  # meters
+                    distance_traveled = (
+                        speed_rev_diff * self.wheel_circumference
+                    )  # meters
                     time_elapsed = speed_time_diff / 1024.0  # seconds
                     speed_mps = distance_traveled / time_elapsed  # m/s
                     self.speed = speed_mps * 3.6  # km/h
@@ -228,7 +246,9 @@ def main():
     bike_sensor = BikeSensor(device_id, network_key, wheel_circumference)
 
     def on_bike_data(data):
-        print(f"Speed: {data['speed']:.1f} km/h, Cadence: {data['cadence']} RPM, Distance: {data['distance']:.2f} km")
+        print(
+            f"Speed: {data['speed']:.1f} km/h, Cadence: {data['cadence']} RPM, Distance: {data['distance']:.2f} km"
+        )
 
     bike_sensor.on_bike_data = on_bike_data
 
@@ -239,7 +259,9 @@ def main():
                 time.sleep(1)
                 bike_sensor.get_current_data()  # Update internal state
                 if not bike_sensor.is_data_fresh():
-                    print(f"{Fore.YELLOW}No recent bike sensor data...{Style.RESET_ALL}")
+                    print(
+                        f"{Fore.YELLOW}No recent bike sensor data...{Style.RESET_ALL}"
+                    )
 
         except KeyboardInterrupt:
             print("\nStopping bike sensor monitor...")

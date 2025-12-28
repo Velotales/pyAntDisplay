@@ -32,7 +32,7 @@ from .launcher import ApplicationLauncher
 
 class CLIHandler:
     """Handles command line interface parsing and routing."""
-    
+
     def __init__(self):
         self.launcher = ApplicationLauncher()
 
@@ -40,39 +40,39 @@ class CLIHandler:
         """Create and configure argument parser."""
         parser = argparse.ArgumentParser(description="PyANTDisplay entry point")
         parser.add_argument(
-            "--mode", 
-            choices=["menu", "monitor", "scan", "list", "mqtt"], 
-            default="menu", 
-            help="Program mode"
+            "--mode",
+            choices=["menu", "monitor", "scan", "list", "mqtt"],
+            default="menu",
+            help="Program mode",
         )
         parser.add_argument(
-            "--config", 
-            type=str, 
-            default="config/sensor_map.yaml", 
-            help="Sensor map config for monitor/mqtt mode"
+            "--config",
+            type=str,
+            default="config/sensor_map.yaml",
+            help="Sensor map config for monitor/mqtt mode",
         )
         parser.add_argument(
-            "--save", 
-            type=str, 
-            default="found_devices.json", 
-            help="Device persistence file for monitor/mqtt mode"
+            "--save",
+            type=str,
+            default="found_devices.json",
+            help="Device persistence file for monitor/mqtt mode",
         )
         parser.add_argument(
-            "--app-config", 
-            type=str, 
-            default="config/config.yaml", 
-            help="App config for scan/list/menu modes"
+            "--app-config",
+            type=str,
+            default="config/config.yaml",
+            help="App config for scan/list/menu modes",
         )
         parser.add_argument(
-            "--local-config", 
-            type=str, 
-            default=None, 
-            help="Optional local app config that overrides base config"
+            "--local-config",
+            type=str,
+            default=None,
+            help="Optional local app config that overrides base config",
         )
         parser.add_argument(
-            "--debug", 
-            action="store_true", 
-            help="Enable verbose logging where supported"
+            "--debug",
+            action="store_true",
+            help="Enable verbose logging where supported",
         )
         return parser
 
@@ -87,7 +87,13 @@ class CLIHandler:
         elif args.mode == "list":
             self.launcher.run_list(args.app_config, args.local_config)
         elif args.mode == "mqtt":
-            self.launcher.run_mqtt(args.config, args.save, args.app_config, args.local_config, debug=args.debug)
+            self.launcher.run_mqtt(
+                args.config,
+                args.save,
+                args.app_config,
+                args.local_config,
+                debug=args.debug,
+            )
 
     def run(self):
         """Parse arguments and run the application."""

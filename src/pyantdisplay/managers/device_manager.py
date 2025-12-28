@@ -33,7 +33,7 @@ from ..devices.heart_rate_monitor import HeartRateMonitor
 
 class DeviceManager:
     """Manages ANT+ device connections and data display."""
-    
+
     def __init__(self, config: dict):
         self.config = config
         self.running = False
@@ -53,7 +53,10 @@ class DeviceManager:
         self.devices = []  # Reset devices list
 
         # Connect heart rate monitor
-        if self.config["devices"]["heart_rate"]["enabled"] and self.config["devices"]["heart_rate"]["device_id"]:
+        if (
+            self.config["devices"]["heart_rate"]["enabled"]
+            and self.config["devices"]["heart_rate"]["device_id"]
+        ):
             hr_device_id = self.config["devices"]["heart_rate"]["device_id"]
             self.hr_monitor = HeartRateMonitor(hr_device_id, network_key)
             self.hr_monitor.on_heart_rate_data = self._on_hr_data
@@ -61,10 +64,15 @@ class DeviceManager:
             if self.hr_monitor.connect():
                 self.devices.append(self.hr_monitor)
             else:
-                print(f"{Fore.RED}Failed to connect to heart rate monitor{Style.RESET_ALL}")
+                print(
+                    f"{Fore.RED}Failed to connect to heart rate monitor{Style.RESET_ALL}"
+                )
 
         # Connect bike sensor
-        if self.config["devices"]["bike_data"]["enabled"] and self.config["devices"]["bike_data"]["device_id"]:
+        if (
+            self.config["devices"]["bike_data"]["enabled"]
+            and self.config["devices"]["bike_data"]["device_id"]
+        ):
             bike_device_id = self.config["devices"]["bike_data"]["device_id"]
             self.bike_sensor = BikeSensor(bike_device_id, network_key)
             self.bike_sensor.on_bike_data = self._on_bike_data

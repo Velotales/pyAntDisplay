@@ -51,7 +51,9 @@ def load_manufacturers(path: str = "config/manufacturers.yaml") -> Dict[int, str
     try:
         with open(path, "r") as f:
             data = yaml.safe_load(f) or {}
-        custom = {int(k): str(v) for k, v in (data.get("manufacturers", {}) or {}).items()}
+        custom = {
+            int(k): str(v) for k, v in (data.get("manufacturers", {}) or {}).items()
+        }
         default.update(custom)
     except Exception:
         pass

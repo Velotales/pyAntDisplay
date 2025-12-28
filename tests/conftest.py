@@ -53,6 +53,13 @@ def sample_config():
             "heart_rate": {"device_id": 12345, "device_type": 120, "enabled": True},
             "bike_data": {"device_id": 67890, "device_type": 121, "enabled": True},
         },
-        "ant_network": {"key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45], "frequency": 57},
-        "app": {"scan_timeout": 30, "data_display_interval": 1, "found_devices_file": "test_found_devices.json"},
+        "ant_network": {
+            "key": [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45],
+            "frequency": 57,
+        },
+        "app": {
+            "scan_timeout": 30,
+            "data_display_interval": 1,
+            "found_devices_file": "test_found_devices.json",
+        },
     }

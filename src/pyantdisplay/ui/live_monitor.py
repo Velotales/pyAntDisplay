@@ -55,7 +55,8 @@ ANT_PLUS_NETWORK_KEY = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
 
 def configure_logging(debug: bool):
     logging.basicConfig(
-        level=(logging.DEBUG if debug else logging.INFO), format="[%(levelname)s] %(name)s: %(message)s"
+        level=(logging.DEBUG if debug else logging.INFO),
+        format="[%(levelname)s] %(name)s: %(message)s",
     )
     for name in [
         "openant",
@@ -92,13 +93,14 @@ class LiveMonitor:
     def _calculate_display_width(self, text):
         """Calculate actual display width accounting for emojis and wide characters."""
         import re
+
         # Remove ANSI color codes for width calculation
-        clean_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
-        
+        clean_text = re.sub(r"\x1b\[[0-9;]*m", "", text)
+
         width = 0
         for char in clean_text:
             # Most emojis are wide characters (2 terminal columns)
-            if unicodedata.east_asian_width(char) in ('F', 'W'):  # Full/Wide
+            if unicodedata.east_asian_width(char) in ("F", "W"):  # Full/Wide
                 width += 2
             elif ord(char) >= 0x1F600:  # Most emoji range
                 width += 2
@@ -112,7 +114,7 @@ class LiveMonitor:
         if display_width >= width:
             return text
         padding = width - display_width
-        return ' ' * padding + text
+        return " " * padding + text
 
     def _load_config(self) -> dict:
         try:
@@ -132,7 +134,9 @@ class LiveMonitor:
                 }
             }
 
-    def _save_found(self, dev_num: int, dev_type: int, trans_type: int, extra: dict | None = None):
+    def _save_found(
+        self, dev_num: int, dev_type: int, trans_type: int, extra: dict | None = None
+    ):
         deep_merge_save(
             self.save_path,
             dev_num,
@@ -147,7 +151,9 @@ class LiveMonitor:
     def start(self):
         # Start node in background
         self.node = Node()
-        self.loop_thread = threading.Thread(target=self.node.start, name="openant.easy.main", daemon=True)
+        self.loop_thread = threading.Thread(
+            target=self.node.start, name="openant.easy.main", daemon=True
+        )
         self.loop_thread.start()
         # Set network key
         self.node.set_network_key(0, ANT_PLUS_NETWORK_KEY)
@@ -209,12 +215,18 @@ class LiveMonitor:
                             d_revs = (revs - last_revs) & 0xFFFF
                             sec = dt_ticks / 1024.0 if dt_ticks > 0 else 0.0
                             if sec > 0 and d_revs >= 0:
-                                if device_type == 123 or device_type == 121:  # Speed or combined
+                                if (
+                                    device_type == 123 or device_type == 121
+                                ):  # Speed or combined
                                     # Assume wheel circumference from config if provided
-                                    circ = self.config.get("wheel_circumference_m", 2.105)
+                                    circ = self.config.get(
+                                        "wheel_circumference_m", 2.105
+                                    )
                                     mps = (d_revs * circ) / sec
                                     speed = mps * 3.6
-                                if device_type == 122 or device_type == 121:  # Cadence or combined
+                                if (
+                                    device_type == 122 or device_type == 121
+                                ):  # Cadence or combined
                                     cadence = (d_revs / sec) * 60.0
                         parsed = {
                             "type": "bike",
@@ -290,17 +302,26 @@ class LiveMonitor:
                 old_hr_id = user.get("hr_device_id")
                 if old_hr_id:
                     hr_ids = [old_hr_id]
-            
+
             # Open channels for all HR devices assigned to this user
             for i, hr_id in enumerate(hr_ids):
                 if hr_id:
-                    self._open_channel(hr_id, 120, f"{name}-HR{i+1 if len(hr_ids) > 1 else ''}")
-            
+                    self._open_channel(
+                        hr_id, 120, f"{name}-HR{i+1 if len(hr_ids) > 1 else ''}"
+                    )
+
             # Initialize user store if they have any HR devices
             if hr_ids:
                 with self.lock:
                     self.user_values.setdefault(
-                        name, {"hr": None, "speed": None, "cadence": None, "power": None, "updated": 0}
+                        name,
+                        {
+                            "hr": None,
+                            "speed": None,
+                            "cadence": None,
+                            "power": None,
+                            "updated": 0,
+                        },
                     )
 
         # Open explicit user bike sensors
@@ -336,7 +357,7 @@ class LiveMonitor:
                 old_hr_id = user.get("hr_device_id")
                 if old_hr_id:
                     hr_ids = [old_hr_id]
-            
+
             if hr_device_id in hr_ids:
                 return user.get("name")
         return None
@@ -356,7 +377,14 @@ class LiveMonitor:
         pow_id = wattbike.get("power_device_id")
         with self.lock:
             uv = self.user_values.setdefault(
-                target, {"hr": None, "speed": None, "cadence": None, "power": None, "updated": 0}
+                target,
+                {
+                    "hr": None,
+                    "speed": None,
+                    "cadence": None,
+                    "power": None,
+                    "updated": 0,
+                },
             )
             if sp and sp in self.device_values:
                 dv = self.device_values[sp]
@@ -418,7 +446,7 @@ class LiveMonitor:
             # Use fixed positions that visually align correctly
             stdscr.addstr(3, hr_col + 3, "❤️ HR")
             stdscr.addstr(3, sp_col + 4, "🚴 Speed")
-            stdscr.addstr(3, cad_col + 3, "🔁 Cadence")  
+            stdscr.addstr(3, cad_col + 3, "🔁 Cadence")
             stdscr.addstr(3, pw_col + 1, "⚡ Power")
             # Separator spans terminal width
             _, cols = stdscr.getmaxyx()
@@ -435,7 +463,7 @@ class LiveMonitor:
                         old_hr_id = user.get("hr_device_id")
                         if old_hr_id:
                             hr_ids = [old_hr_id]
-                    
+
                     hr_val = None
                     active_hr_id = None
                     # Find the first active HR device for this user
@@ -446,13 +474,20 @@ class LiveMonitor:
                                 hr_val = dv.get("hr")
                                 active_hr_id = hr_id
                                 break
-                    
+
                     if hr_val is not None:
                         # stamp last active
                         if hr_val:
                             self.last_hr_active_user = name
                             uv = self.user_values.setdefault(
-                                name, {"hr": None, "speed": None, "cadence": None, "power": None, "updated": 0}
+                                name,
+                                {
+                                    "hr": None,
+                                    "speed": None,
+                                    "cadence": None,
+                                    "power": None,
+                                    "updated": 0,
+                                },
                             )
                             uv["hr"] = hr_val
                             uv["updated"] = time.time()
@@ -480,10 +515,16 @@ class LiveMonitor:
                     pw_attr = curses.color_pair(2) if pw else curses.color_pair(3)
                     stdscr.addstr(row, 0, display_name.ljust(user_w))
                     # Align data values under the text portion of headers
-                    stdscr.addstr(row, 25, hr_s, hr_attr)      # Under "R" in "❤️ HR"
-                    stdscr.addstr(row, sp_col + sp_w - len(sp_s), sp_s, sp_attr)     # Right-align in Speed column
-                    stdscr.addstr(row, cad_col + cad_w - len(cad_s), cad_s, cad_attr) # Right-align in Cadence column
-                    stdscr.addstr(row, pw_col + pw_w - len(pw_s), pw_s, pw_attr)     # Right-align in Power column
+                    stdscr.addstr(row, 25, hr_s, hr_attr)  # Under "R" in "❤️ HR"
+                    stdscr.addstr(
+                        row, sp_col + sp_w - len(sp_s), sp_s, sp_attr
+                    )  # Right-align in Speed column
+                    stdscr.addstr(
+                        row, cad_col + cad_w - len(cad_s), cad_s, cad_attr
+                    )  # Right-align in Cadence column
+                    stdscr.addstr(
+                        row, pw_col + pw_w - len(pw_s), pw_s, pw_attr
+                    )  # Right-align in Power column
                     row += 1
 
             stdscr.refresh()
@@ -507,8 +548,18 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="ANT+ Live Monitor")
-    parser.add_argument("--config", type=str, default="config/sensor_map.yaml", help="Sensor map config file")
-    parser.add_argument("--save", type=str, default="data/found_devices.json", help="File to persist found devices")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="config/sensor_map.yaml",
+        help="Sensor map config file",
+    )
+    parser.add_argument(
+        "--save",
+        type=str,
+        default="data/found_devices.json",
+        help="File to persist found devices",
+    )
     parser.add_argument("--debug", action="store_true", help="Enable verbose logging")
     args = parser.parse_args()
 

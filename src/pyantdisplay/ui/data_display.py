@@ -36,7 +36,7 @@ from colorama import Back, Fore, Style
 
 class DataDisplayService:
     """Handles real-time data display with terminal UI management."""
-    
+
     def __init__(self, device_manager, config: dict):
         self.device_manager = device_manager
         self.config = config
@@ -45,12 +45,12 @@ class DataDisplayService:
 
     def _check_for_quit(self):
         """Check for 'q' key press without blocking."""
-        if os.name == 'posix':  # Unix/Linux/macOS
+        if os.name == "posix":  # Unix/Linux/macOS
             # Use non-blocking read
             try:
                 if select.select([sys.stdin], [], [], 0.01) == ([sys.stdin], [], []):
                     char = sys.stdin.read(1).lower()
-                    if char == 'q':
+                    if char == "q":
                         return True
             except Exception:
                 # If there's any issue with input, just continue
@@ -58,9 +58,10 @@ class DataDisplayService:
         else:  # Windows
             try:
                 import msvcrt
+
                 if msvcrt.kbhit():
-                    char = msvcrt.getch().decode('utf-8').lower()
-                    if char == 'q':
+                    char = msvcrt.getch().decode("utf-8").lower()
+                    if char == "q":
                         return True
             except ImportError:
                 pass
@@ -70,7 +71,7 @@ class DataDisplayService:
         """Display real-time data from connected devices."""
         print(f"\n{Fore.CYAN}=== ANT+ Data Display ==={Style.RESET_ALL}")
         print("Initializing display...")
-        
+
         self.running = True
         self.quit_requested = False
         old_settings = None
@@ -78,18 +79,23 @@ class DataDisplayService:
         # Only set raw mode if we have devices to display
         connected_devices = [d for d in self.device_manager.devices if d.connected]
         if not connected_devices:
-            print(f"{Fore.YELLOW}No ANT+ devices connected. Connect devices first using scan/configure options.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}No ANT+ devices connected. Connect devices first using scan/configure options.{Style.RESET_ALL}"
+            )
             return
 
         # Simpler approach: try to set raw mode but don't fail if it doesn't work
         try:
-            if os.name == 'posix':
+            if os.name == "posix":
                 import tty, termios
+
                 old_settings = termios.tcgetattr(sys.stdin)
                 # Set cbreak mode instead of raw mode - less intrusive
                 tty.setcbreak(sys.stdin.fileno())
         except Exception as e:
-            print(f"{Fore.YELLOW}Note: Using fallback input mode (raw terminal mode unavailable){Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}Note: Using fallback input mode (raw terminal mode unavailable){Style.RESET_ALL}"
+            )
             time.sleep(1)
 
         try:
@@ -106,6 +112,7 @@ class DataDisplayService:
                 # Get terminal size for better layout
                 try:
                     import shutil
+
                     cols, rows = shutil.get_terminal_size()
                     cols = min(cols, 80)  # Cap width for readability
                 except:
@@ -113,7 +120,7 @@ class DataDisplayService:
 
                 # Display header with border
                 self._display_header(cols)
-                
+
                 # Display device data
                 self._display_heart_rate_monitor(cols)
                 self._display_bike_sensor(cols)
@@ -127,13 +134,14 @@ class DataDisplayService:
             print(f"\n{Fore.GREEN}✅ Data display stopped{Style.RESET_ALL}")
         finally:
             # Restore terminal settings
-            if old_settings and os.name == 'posix':
+            if old_settings and os.name == "posix":
                 try:
                     import termios
+
                     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
                 except:
                     pass
-            
+
             if self.quit_requested:
                 print(f"\n{Fore.GREEN}✅ Data display stopped{Style.RESET_ALL}")
 
@@ -143,12 +151,14 @@ class DataDisplayService:
         header_width = self._calculate_display_width(header)
         header_padding = max(0, (cols - header_width) // 2)
         border_line = "═" * cols
-        
+
         print(f"{Back.BLUE}{Fore.WHITE}{border_line}{Style.RESET_ALL}")
-        print(f"{Back.BLUE}{Fore.WHITE}{' ' * header_padding}{header}{' ' * (cols - header_width - header_padding)}{Style.RESET_ALL}")
+        print(
+            f"{Back.BLUE}{Fore.WHITE}{' ' * header_padding}{header}{' ' * (cols - header_width - header_padding)}{Style.RESET_ALL}"
+        )
         print(f"{Back.BLUE}{Fore.WHITE}{border_line}{Style.RESET_ALL}")
-        
-        timestamp = time.strftime('%H:%M:%S • %Y-%m-%d')
+
+        timestamp = time.strftime("%H:%M:%S • %Y-%m-%d")
         print(f"{Fore.CYAN}🕐 {timestamp}{Style.RESET_ALL}")
         print()
 
@@ -157,19 +167,22 @@ class DataDisplayService:
         control_line = f"{Back.RED}{Fore.WHITE} Press 'q' key to quit (no Enter needed) {Style.RESET_ALL}"
         control_padding = max(0, (cols - 40) // 2)
         print(" " * control_padding + control_line)
-        
-        print(f"\n{Style.DIM}Refreshing every {self.config['app']['data_display_interval']}s...{Style.RESET_ALL}")
+
+        print(
+            f"\n{Style.DIM}Refreshing every {self.config['app']['data_display_interval']}s...{Style.RESET_ALL}"
+        )
 
     def _calculate_display_width(self, text):
         """Calculate actual display width accounting for emojis and ANSI codes."""
         # Remove ANSI color codes for width calculation
         import re
-        clean_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
-        
+
+        clean_text = re.sub(r"\x1b\[[0-9;]*m", "", text)
+
         width = 0
         for char in clean_text:
             # Most emojis are wide characters (2 terminal columns)
-            if unicodedata.east_asian_width(char) in ('F', 'W'):  # Full/Wide
+            if unicodedata.east_asian_width(char) in ("F", "W"):  # Full/Wide
                 width += 2
             elif ord(char) >= 0x1F600:  # Most emoji range
                 width += 2
@@ -179,25 +192,36 @@ class DataDisplayService:
 
     def _display_heart_rate_monitor(self, cols):
         """Display heart rate monitor data in a box."""
-        self._print_device_box("Heart Rate Monitor", "💓", 
-                              self.device_manager.hr_monitor and self.device_manager.hr_monitor.connected, 
-                              self._hr_display_func, cols)
-    
+        self._print_device_box(
+            "Heart Rate Monitor",
+            "💓",
+            self.device_manager.hr_monitor and self.device_manager.hr_monitor.connected,
+            self._hr_display_func,
+            cols,
+        )
+
     def _display_bike_sensor(self, cols):
         """Display bike sensor data in a box."""
-        self._print_device_box("Bike Sensor", "🚴", 
-                              self.device_manager.bike_sensor and self.device_manager.bike_sensor.connected, 
-                              self._bike_display_func, cols)
+        self._print_device_box(
+            "Bike Sensor",
+            "🚴",
+            self.device_manager.bike_sensor
+            and self.device_manager.bike_sensor.connected,
+            self._bike_display_func,
+            cols,
+        )
 
     def _print_device_box(self, title, icon, connected, data_func, cols):
         """Print a device data box with border."""
         box_width = cols - 4
         title_text = f"{icon} {title} "
         title_display_width = self._calculate_display_width(title_text)
-        title_line = f"┌─ {title_text}" + "─" * max(0, box_width - title_display_width - 3) + "┐"
-        
+        title_line = (
+            f"┌─ {title_text}" + "─" * max(0, box_width - title_display_width - 3) + "┐"
+        )
+
         print(f"{Fore.CYAN}{title_line}{Style.RESET_ALL}")
-        
+
         if connected:
             data_func(box_width)
         else:
@@ -205,7 +229,7 @@ class DataDisplayService:
             not_connected_width = self._calculate_display_width(not_connected_text)
             padding = " " * max(0, box_width - not_connected_width) + "│"
             print(not_connected_text + padding)
-        
+
         bottom_line = "└" + "─" * (box_width - 1) + "┘"
         print(f"{Fore.CYAN}{bottom_line}{Style.RESET_ALL}")
         print()
@@ -214,7 +238,7 @@ class DataDisplayService:
         """Display heart rate data inside the box."""
         hr_data = self.device_manager.hr_data
         hr_monitor = self.device_manager.hr_monitor
-        
+
         if hr_data and hr_monitor.is_data_fresh():
             hr = hr_data["heart_rate"]
             if hr > 0:
@@ -231,12 +255,12 @@ class DataDisplayService:
                 else:
                     hr_color = Fore.RED
                     zone = "Anaerobic"
-                
+
                 hr_line = f"│ {hr_color}💓 {hr:3d} BPM{Style.RESET_ALL} ({zone})"
                 hr_width = self._calculate_display_width(hr_line)
                 padding = " " * max(0, box_width - hr_width) + "│"
                 print(hr_line + padding)
-                
+
                 if hr_data.get("rr_intervals"):
                     rr_count = len(hr_data["rr_intervals"])
                     rr_line = f"│ 📈 R-R Intervals: {rr_count} samples"
@@ -258,26 +282,28 @@ class DataDisplayService:
         """Display bike sensor data inside the box."""
         bike_data = self.device_manager.bike_data
         bike_sensor = self.device_manager.bike_sensor
-        
+
         if bike_data and bike_sensor.is_data_fresh():
             speed = bike_data["speed"]
             cadence = bike_data["cadence"]
             distance = bike_data["distance"]
-            
+
             # Speed
             speed_color = Fore.GREEN if speed > 0 else Fore.YELLOW
             speed_line = f"│ {speed_color}🚴 Speed: {speed:5.1f} km/h{Style.RESET_ALL}"
             speed_width = self._calculate_display_width(speed_line)
             speed_padding = " " * max(0, box_width - speed_width) + "│"
             print(speed_line + speed_padding)
-            
+
             # Cadence
-            cadence_color = Fore.GREEN if cadence > 0 else Fore.YELLOW  
-            cadence_line = f"│ {cadence_color}🔄 Cadence: {cadence:3d} RPM{Style.RESET_ALL}"
+            cadence_color = Fore.GREEN if cadence > 0 else Fore.YELLOW
+            cadence_line = (
+                f"│ {cadence_color}🔄 Cadence: {cadence:3d} RPM{Style.RESET_ALL}"
+            )
             cadence_width = self._calculate_display_width(cadence_line)
             cadence_padding = " " * max(0, box_width - cadence_width) + "│"
             print(cadence_line + cadence_padding)
-            
+
             # Distance
             distance_line = f"│ 📏 Distance: {distance:6.2f} km"
             distance_width = self._calculate_display_width(distance_line)

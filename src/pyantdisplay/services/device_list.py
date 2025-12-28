@@ -33,7 +33,7 @@ from colorama import Fore, Style
 
 class DeviceListService:
     """Handles device listing and display operations."""
-    
+
     def __init__(self, config: dict):
         self.config = config
 
@@ -45,7 +45,9 @@ class DeviceListService:
             with open(devices_file, "r") as f:
                 devices = json.load(f)
         except FileNotFoundError:
-            print(f"{Fore.YELLOW}No found devices file. Run scan first.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}No found devices file. Run scan first.{Style.RESET_ALL}"
+            )
             return
         except Exception as e:
             print(f"{Fore.RED}Error loading found devices: {e}{Style.RESET_ALL}")
@@ -64,14 +66,18 @@ class DeviceListService:
         print("-" * 70)
 
         for key, device in devices.items():
-            last_seen = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(device["last_seen"]))
-            print(f"{device['device_id']:<8} {device['device_type']:<6} " 
-                  f"{device['device_name']:<25} {last_seen}")
+            last_seen = time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.localtime(device["last_seen"])
+            )
+            print(
+                f"{device['device_id']:<8} {device['device_type']:<6} "
+                f"{device['device_name']:<25} {last_seen}"
+            )
 
     def get_device_count(self) -> int:
         """Get the count of found devices."""
         devices_file = self.config["app"]["found_devices_file"]
-        
+
         try:
             with open(devices_file, "r") as f:
                 devices = json.load(f)

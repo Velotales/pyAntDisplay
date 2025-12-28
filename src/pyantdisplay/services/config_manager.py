@@ -36,20 +36,24 @@ from ..services.device_config import DeviceConfigurationService
 
 class ConfigManager:
     """Manages application configuration and device setup."""
-    
+
     def __init__(self, config_file: str = "config/config.yaml"):
         self.config_file = config_file
         self.config = self.load_config()
-    
+
     def load_config(self) -> dict:
         """Load configuration from YAML file."""
         try:
             with open(self.config_file, "r") as f:
                 config = yaml.safe_load(f)
-            print(f"{Fore.GREEN}Loaded configuration from {self.config_file}{Style.RESET_ALL}")
+            print(
+                f"{Fore.GREEN}Loaded configuration from {self.config_file}{Style.RESET_ALL}"
+            )
             return config
         except FileNotFoundError:
-            print(f"{Fore.RED}Configuration file {self.config_file} not found{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}Configuration file {self.config_file} not found{Style.RESET_ALL}"
+            )
             sys.exit(1)
         except Exception as e:
             print(f"{Fore.RED}Error loading configuration: {e}{Style.RESET_ALL}")
@@ -60,7 +64,9 @@ class ConfigManager:
         try:
             with open(self.config_file, "w") as f:
                 yaml.dump(self.config, f, default_flow_style=False, indent=2)
-            print(f"{Fore.GREEN}Configuration saved to {self.config_file}{Style.RESET_ALL}")
+            print(
+                f"{Fore.GREEN}Configuration saved to {self.config_file}{Style.RESET_ALL}"
+            )
         except Exception as e:
             print(f"{Fore.RED}Error saving configuration: {e}{Style.RESET_ALL}")
 

@@ -54,7 +54,8 @@ ANT_PLUS_NETWORK_KEY = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
 
 def configure_logging(debug: bool):
     logging.basicConfig(
-        level=(logging.DEBUG if debug else logging.INFO), format="[%(levelname)s] %(name)s: %(message)s"
+        level=(logging.DEBUG if debug else logging.INFO),
+        format="[%(levelname)s] %(name)s: %(message)s",
     )
     for name in [
         "openant",
@@ -84,7 +85,9 @@ class MqttMonitor:
         self.local_app_config_path = local_app_config_path
         self.debug = debug
         self.sensor_config = self._load_yaml(self.sensor_config_path)
-        self.app_config = self._merge_yaml(self.app_config_path, self.local_app_config_path)
+        self.app_config = self._merge_yaml(
+            self.app_config_path, self.local_app_config_path
+        )
         self.node: Optional[Node] = None
         self.loop_thread: Optional[threading.Thread] = None
         self.channels: List[Channel] = []
@@ -99,7 +102,9 @@ class MqttMonitor:
         self.manufacturer_map: Dict[int, str] = load_manufacturers()
 
         # MQTT config
-        mqtt_cfg = self.app_config.get("mqtt", {}) if isinstance(self.app_config, dict) else {}
+        mqtt_cfg = (
+            self.app_config.get("mqtt", {}) if isinstance(self.app_config, dict) else {}
+        )
         self.mqtt_host = mqtt_cfg.get("host", "localhost")
         self.mqtt_port = int(mqtt_cfg.get("port", 1883))
         self.mqtt_username = mqtt_cfg.get("username")
@@ -144,7 +149,9 @@ class MqttMonitor:
 
     def _connect_mqtt(self):
         if mqtt is None:
-            print(f"{Fore.RED}paho-mqtt not installed; cannot run MQTT mode{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}paho-mqtt not installed; cannot run MQTT mode{Style.RESET_ALL}"
+            )
             sys.exit(1)
         self.mqtt_client = mqtt.Client(client_id=self.client_id, clean_session=True)
         if self.mqtt_username:
@@ -157,7 +164,9 @@ class MqttMonitor:
     def _publish(self, topic: str, payload: str):
         full = f"{self.base_topic}/{topic}"
         try:
-            self.mqtt_client.publish(full, payload=payload, qos=self.qos, retain=self.retain)
+            self.mqtt_client.publish(
+                full, payload=payload, qos=self.qos, retain=self.retain
+            )
         except Exception:
             pass
 
@@ -225,7 +234,9 @@ class MqttMonitor:
                 payload["state_class"] = ent["state_class"]
             topic = f"{self.discovery_prefix}/sensor/{obj_id}/config"
             try:
-                self.mqtt_client.publish(topic, payload=json.dumps(payload), qos=1, retain=True)
+                self.mqtt_client.publish(
+                    topic, payload=json.dumps(payload), qos=1, retain=True
+                )
                 logging.info(f"Published HA discovery for '{user}' {ent['metric']}")
             except Exception:
                 pass
@@ -255,7 +266,9 @@ class MqttMonitor:
         self._connect_mqtt()
         # Start node
         self.node = Node()
-        self.loop_thread = threading.Thread(target=self.node.start, name="openant.easy.main", daemon=True)
+        self.loop_thread = threading.Thread(
+            target=self.node.start, name="openant.easy.main", daemon=True
+        )
         self.loop_thread.start()
         # Set network key
         self.node.set_network_key(0, ANT_PLUS_NETWORK_KEY)
@@ -322,7 +335,9 @@ class MqttMonitor:
                             d_revs = (revs - last_revs) & 0xFFFF
                             sec = dt_ticks / 1024.0 if dt_ticks > 0 else 0.0
                             if sec > 0 and d_revs >= 0:
-                                circ = self.sensor_config.get("wheel_circumference_m", 2.105)
+                                circ = self.sensor_config.get(
+                                    "wheel_circumference_m", 2.105
+                                )
                                 if device_type == 123 or device_type == 121:
                                     mps = (d_revs * circ) / sec
                                     speed = mps * 3.6
@@ -357,7 +372,9 @@ class MqttMonitor:
 
                 # First data event
                 if first:
-                    logging.info(f"First data received for device '{label}' (ID={device_id}, type={device_type})")
+                    logging.info(
+                        f"First data received for device '{label}' (ID={device_id}, type={device_type})"
+                    )
 
                 # Request channel ID once and persist
                 try:
@@ -415,17 +432,26 @@ class MqttMonitor:
                 old_hr_id = user.get("hr_device_id")
                 if old_hr_id:
                     hr_ids = [old_hr_id]
-            
+
             # Open channels for all HR devices assigned to this user
             for i, hr_id in enumerate(hr_ids):
                 if hr_id:
-                    self._open_channel(hr_id, 120, f"{name}-HR{i+1 if len(hr_ids) > 1 else ''}")
-            
+                    self._open_channel(
+                        hr_id, 120, f"{name}-HR{i+1 if len(hr_ids) > 1 else ''}"
+                    )
+
             # Initialize user store if they have any HR devices
             if hr_ids:
                 with self.lock:
                     self.user_values.setdefault(
-                        name, {"hr": None, "speed": None, "cadence": None, "power": None, "updated": 0}
+                        name,
+                        {
+                            "hr": None,
+                            "speed": None,
+                            "cadence": None,
+                            "power": None,
+                            "updated": 0,
+                        },
                     )
                     self._availability(name, False)
 
@@ -460,7 +486,7 @@ class MqttMonitor:
                 old_hr_id = user.get("hr_device_id")
                 if old_hr_id:
                     hr_ids = [old_hr_id]
-            
+
             if hr_device_id in hr_ids:
                 return user.get("name")
         return None
@@ -478,7 +504,14 @@ class MqttMonitor:
         pow_id = wattbike.get("power_device_id")
         with self.lock:
             uv = self.user_values.setdefault(
-                target, {"hr": None, "speed": None, "cadence": None, "power": None, "updated": 0}
+                target,
+                {
+                    "hr": None,
+                    "speed": None,
+                    "cadence": None,
+                    "power": None,
+                    "updated": 0,
+                },
             )
             if sp and sp in self.device_values:
                 dv = self.device_values[sp]

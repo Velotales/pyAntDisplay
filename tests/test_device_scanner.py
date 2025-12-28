@@ -71,7 +71,11 @@ class TestDeviceScanner:
 
         # Add a mock device
         scanner.found_devices = {
-            "120_12345": {"device_id": 12345, "device_type": 120, "device_name": "Test HR Monitor"}
+            "120_12345": {
+                "device_id": 12345,
+                "device_type": 120,
+                "device_name": "Test HR Monitor",
+            }
         }
 
         scanner.save_found_devices("test_devices.json")
@@ -86,7 +90,13 @@ class TestDeviceScanner:
         network_key = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
         scanner = DeviceScanner(network_key)
 
-        mock_devices = {"120_12345": {"device_id": 12345, "device_type": 120, "device_name": "Test HR Monitor"}}
+        mock_devices = {
+            "120_12345": {
+                "device_id": 12345,
+                "device_type": 120,
+                "device_name": "Test HR Monitor",
+            }
+        }
         mock_json_load.return_value = mock_devices
 
         devices = scanner.load_found_devices("test_devices.json")

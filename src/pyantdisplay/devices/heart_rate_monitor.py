@@ -59,11 +59,15 @@ class HeartRateMonitor:
     def connect(self) -> bool:
         """Connect to the heart rate monitor."""
         try:
-            print(f"{Fore.CYAN}Connecting to Heart Rate Monitor (ID: {self.device_id})...{Style.RESET_ALL}")
+            print(
+                f"{Fore.CYAN}Connecting to Heart Rate Monitor (ID: {self.device_id})...{Style.RESET_ALL}"
+            )
 
             self.node = Node()
             # Run event loop in background; Node.start() is blocking
-            self.loop_thread = threading.Thread(target=self.node.start, name="openant.easy.main", daemon=True)
+            self.loop_thread = threading.Thread(
+                target=self.node.start, name="openant.easy.main", daemon=True
+            )
             self.loop_thread.start()
 
             # Set network key on network 0
@@ -96,7 +100,9 @@ class HeartRateMonitor:
             return True
 
         except Exception as e:
-            print(f"{Fore.RED}Failed to connect to Heart Rate Monitor: {e}{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}Failed to connect to Heart Rate Monitor: {e}{Style.RESET_ALL}"
+            )
             self.disconnect()
             return False
 

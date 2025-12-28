@@ -43,9 +43,21 @@ class ANTUSBDetector:
     ANT_DEVICES = [
         # Dynastream/Garmin ANT+ sticks
         {"vendor_id": 0x0FCF, "product_id": 0x1003, "name": "Dynastream ANT USB Stick"},
-        {"vendor_id": 0x0FCF, "product_id": 0x1004, "name": "Dynastream ANT USB Stick 2"},
-        {"vendor_id": 0x0FCF, "product_id": 0x1006, "name": "Dynastream ANT USB-m Stick"},
-        {"vendor_id": 0x0FCF, "product_id": 0x1008, "name": "Dynastream ANT USB-m Stick"},
+        {
+            "vendor_id": 0x0FCF,
+            "product_id": 0x1004,
+            "name": "Dynastream ANT USB Stick 2",
+        },
+        {
+            "vendor_id": 0x0FCF,
+            "product_id": 0x1006,
+            "name": "Dynastream ANT USB-m Stick",
+        },
+        {
+            "vendor_id": 0x0FCF,
+            "product_id": 0x1008,
+            "name": "Dynastream ANT USB-m Stick",
+        },
         {"vendor_id": 0x0FCF, "product_id": 0x1009, "name": "Dynastream ANT USB Stick"},
         # Suunto ANT+ sticks (some models)
         {"vendor_id": 0x1493, "product_id": 0x0003, "name": "Suunto ANT+ USB Stick"},
@@ -74,7 +86,10 @@ class ANTUSBDetector:
             for device in devices:
                 # Check if this device matches known ANT+ devices
                 for ant_device in self.ANT_DEVICES:
-                    if device.idVendor == ant_device["vendor_id"] and device.idProduct == ant_device["product_id"]:
+                    if (
+                        device.idVendor == ant_device["vendor_id"]
+                        and device.idProduct == ant_device["product_id"]
+                    ):
 
                         device_info = {
                             "vendor_id": device.idVendor,
@@ -101,7 +116,9 @@ class ANTUSBDetector:
                         break
 
         except Exception as e:
-            print(f"{Fore.YELLOW}Warning: Error during USB device detection: {e}{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}Warning: Error during USB device detection: {e}{Style.RESET_ALL}"
+            )
 
         return self.detected_devices
 
@@ -146,18 +163,26 @@ class ANTUSBDetector:
             list(usb.core.find(find_all=True))  # Test USB access
             return True
         except usb.core.NoBackendError:
-            print(f"{Fore.RED}Error: No USB backend available. Please install libusb.{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}Error: No USB backend available. Please install libusb.{Style.RESET_ALL}"
+            )
             return False
         except usb.core.USBError as e:
             if "Access denied" in str(e) or "Permission denied" in str(e):
-                print(f"{Fore.RED}Error: Permission denied accessing USB devices.{Style.RESET_ALL}")
-                print(f"{Fore.YELLOW}Try running with sudo or setting up udev rules.{Style.RESET_ALL}")
+                print(
+                    f"{Fore.RED}Error: Permission denied accessing USB devices.{Style.RESET_ALL}"
+                )
+                print(
+                    f"{Fore.YELLOW}Try running with sudo or setting up udev rules.{Style.RESET_ALL}"
+                )
                 return False
             else:
                 print(f"{Fore.YELLOW}Warning: USB error: {e}{Style.RESET_ALL}")
                 return True  # May still work for some operations
         except Exception as e:
-            print(f"{Fore.YELLOW}Warning: Unexpected error checking USB permissions: {e}{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}Warning: Unexpected error checking USB permissions: {e}{Style.RESET_ALL}"
+            )
             return True  # Assume it might work
 
     def print_setup_instructions(self):
@@ -171,7 +196,9 @@ class ANTUSBDetector:
         print("   # Create udev rule for ANT+ stick:")
         print("   sudo nano /etc/udev/rules.d/99-ant-stick.rules")
         print("   # Add this line (adjust vendor/product ID as needed):")
-        print('   SUBSYSTEM=="usb", ATTRS{idVendor}=="0fcf", ATTRS{idProduct}=="1008", MODE="0666"')
+        print(
+            '   SUBSYSTEM=="usb", ATTRS{idVendor}=="0fcf", ATTRS{idProduct}=="1008", MODE="0666"'
+        )
         print("   # Reload udev rules:")
         print("   sudo udevadm control --reload-rules && sudo udevadm trigger")
         print()
@@ -198,7 +225,9 @@ def main():
 
     if devices:
         detector.print_detected_devices()
-        print(f"{Fore.GREEN}✓ ANT+ USB stick(s) detected and ready to use!{Style.RESET_ALL}")
+        print(
+            f"{Fore.GREEN}✓ ANT+ USB stick(s) detected and ready to use!{Style.RESET_ALL}"
+        )
     else:
         print(f"{Fore.YELLOW}No ANT+ USB sticks found.{Style.RESET_ALL}")
         detector.print_setup_instructions()

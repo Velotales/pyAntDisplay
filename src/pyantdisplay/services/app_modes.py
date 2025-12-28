@@ -43,11 +43,13 @@ from ..utils.usb_detector import ANTUSBDetector
 
 class AppModeService:
     """Handles different application modes and their orchestration."""
-    
+
     def __init__(self):
         self.config_loader = ConfigLoader()
 
-    def run_menu(self, app_config: Optional[str] = None, local_config: Optional[str] = None):
+    def run_menu(
+        self, app_config: Optional[str] = None, local_config: Optional[str] = None
+    ):
         """Run the interactive menu mode."""
         try:
             # Initialize components
@@ -62,15 +64,17 @@ class AppModeService:
 
             # Show interactive menu
             menu_manager.show_menu()
-            
+
         except KeyboardInterrupt:
             print(f"\n{Fore.YELLOW}Application interrupted{Style.RESET_ALL}")
         finally:
             # Cleanup
-            if 'device_manager' in locals():
+            if "device_manager" in locals():
                 device_manager.stop()
 
-    def run_scan(self, app_config: str, local_config: Optional[str] = None, debug: bool = False):
+    def run_scan(
+        self, app_config: str, local_config: Optional[str] = None, debug: bool = False
+    ):
         """Run device scanning mode."""
         cfg = self.config_loader.load_app_config(app_config, local_config)
         key = cfg.get("ant_network", {}).get("key", ANT_PLUS_NETWORK_KEY)
@@ -79,10 +83,14 @@ class AppModeService:
         save_path = cfg.get("app", {}).get("found_devices_file", "found_devices.json")
 
         print(f"{Fore.CYAN}ANT+ Device Scanner{Style.RESET_ALL}")
-        scanner = DeviceScanner(key, scan_timeout=timeout, debug=debug, backend_preference=backend_pref)
+        scanner = DeviceScanner(
+            key, scan_timeout=timeout, debug=debug, backend_preference=backend_pref
+        )
         devices = scanner.scan_for_devices()
         scanner.save_found_devices(save_path)
-        print(f"{Fore.GREEN}Saved {len(devices)} devices to {save_path}{Style.RESET_ALL}")
+        print(
+            f"{Fore.GREEN}Saved {len(devices)} devices to {save_path}{Style.RESET_ALL}"
+        )
 
     def run_list(self, app_config: str, local_config: Optional[str] = None):
         """List discovered devices."""
@@ -112,11 +120,11 @@ class AppModeService:
 
     def run_mqtt(
         self,
-        sensor_config: str, 
-        save_path: str, 
-        app_config: str, 
-        local_config: Optional[str] = None, 
-        debug: bool = False
+        sensor_config: str,
+        save_path: str,
+        app_config: str,
+        local_config: Optional[str] = None,
+        debug: bool = False,
     ):
         """Run MQTT publishing mode."""
         mon = MqttMonitor(
@@ -134,5 +142,9 @@ class AppModeService:
         print(f"{'ID':<8} {'Type':<6} {'Key':<15} {'Last Seen':<20}")
         print("-" * 60)
         for k, v in devices.items():
-            last = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(v.get("last_seen", 0)))
-            print(f"{v.get('device_id', '-'):<8} {v.get('device_type', '-'):<6} {k:<15} {last:<20}")
+            last = time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.localtime(v.get("last_seen", 0))
+            )
+            print(
+                f"{v.get('device_id', '-'):<8} {v.get('device_type', '-'):<6} {k:<15} {last:<20}"
+            )

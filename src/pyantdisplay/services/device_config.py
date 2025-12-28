@@ -32,7 +32,7 @@ from colorama import Fore, Style
 
 class DeviceConfigurationService:
     """Handles interactive device configuration and selection."""
-    
+
     def __init__(self, config: dict):
         self.config = config
 
@@ -46,7 +46,9 @@ class DeviceConfigurationService:
             with open(devices_file, "r") as f:
                 found_devices = json.load(f)
         except FileNotFoundError:
-            print(f"{Fore.YELLOW}No found devices file. Run scan first.{Style.RESET_ALL}")
+            print(
+                f"{Fore.YELLOW}No found devices file. Run scan first.{Style.RESET_ALL}"
+            )
             return False
 
         if not found_devices:
@@ -55,7 +57,7 @@ class DeviceConfigurationService:
 
         # Configure heart rate monitor
         self._configure_heart_rate_monitor(found_devices)
-        
+
         # Configure bike sensor
         self._configure_bike_sensor(found_devices)
 
@@ -71,10 +73,14 @@ class DeviceConfigurationService:
                 print(f"  {i}. {device['device_name']} (ID: {device['device_id']})")
 
             try:
-                choice = input(f"\nSelect heart rate monitor (1-{len(hr_devices)}, 0 to skip): ")
+                choice = input(
+                    f"\nSelect heart rate monitor (1-{len(hr_devices)}, 0 to skip): "
+                )
                 if choice != "0" and 1 <= int(choice) <= len(hr_devices):
                     selected_device = list(hr_devices.values())[int(choice) - 1]
-                    self.config["devices"]["heart_rate"]["device_id"] = selected_device["device_id"]
+                    self.config["devices"]["heart_rate"]["device_id"] = selected_device[
+                        "device_id"
+                    ]
                     print(
                         f"{Fore.GREEN}Selected heart rate monitor ID: {selected_device['device_id']}{Style.RESET_ALL}"
                     )
@@ -86,18 +92,28 @@ class DeviceConfigurationService:
     def _configure_bike_sensor(self, found_devices):
         """Configure bike sensor selection."""
         print(f"\n{Fore.GREEN}Bike Sensors:{Style.RESET_ALL}")
-        bike_devices = {k: v for k, v in found_devices.items() if v["device_type"] in [121, 122, 123]}
+        bike_devices = {
+            k: v
+            for k, v in found_devices.items()
+            if v["device_type"] in [121, 122, 123]
+        }
 
         if bike_devices:
             for i, (key, device) in enumerate(bike_devices.items(), 1):
                 print(f"  {i}. {device['device_name']} (ID: {device['device_id']})")
 
             try:
-                choice = input(f"\nSelect bike sensor (1-{len(bike_devices)}, 0 to skip): ")
+                choice = input(
+                    f"\nSelect bike sensor (1-{len(bike_devices)}, 0 to skip): "
+                )
                 if choice != "0" and 1 <= int(choice) <= len(bike_devices):
                     selected_device = list(bike_devices.values())[int(choice) - 1]
-                    self.config["devices"]["bike_data"]["device_id"] = selected_device["device_id"]
-                    print(f"{Fore.GREEN}Selected bike sensor ID: {selected_device['device_id']}{Style.RESET_ALL}")
+                    self.config["devices"]["bike_data"]["device_id"] = selected_device[
+                        "device_id"
+                    ]
+                    print(
+                        f"{Fore.GREEN}Selected bike sensor ID: {selected_device['device_id']}{Style.RESET_ALL}"
+                    )
             except (ValueError, IndexError):
                 print(f"{Fore.YELLOW}Invalid selection{Style.RESET_ALL}")
         else:
