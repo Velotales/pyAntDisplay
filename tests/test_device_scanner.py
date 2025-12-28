@@ -29,7 +29,7 @@ class TestDeviceScanner:
 
     @patch("pyantdisplay.services.device_scanner.AntBackend")
     @patch("pyantdisplay.services.device_scanner.load_manufacturers")
-    @patch("pyantdisplay.services.device_scanner.ANTUSBDetector")
+    @patch("pyantdisplay.utils.usb_detector.ANTUSBDetector")
     @patch("time.sleep")  # Prevent actual sleeping
     @patch("time.time")
     def test_scan_for_devices_initialization(
